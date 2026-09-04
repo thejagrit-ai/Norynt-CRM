@@ -1,8 +1,8 @@
 'use client';
 // src/components/organisms/LoginForm.tsx
-// Substantial, Premium Enterprise SaaS authentication card for Norynt CRM.
-// Features expanded scale, robust typography hierarchy, 52px inputs, brand gradients,
-// functional eye password reveal, OAuth SSO helpers, and trust credentials.
+// Executive SaaS authentication card for Norynt CRM matching the reference design.
+// Contains official Norynt logo asset, email & password fields, show/hide toggle,
+// remember-me, need help, Sign In with arrow, and Google/Microsoft SSO buttons.
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -13,8 +13,8 @@ import {
   Eye,
   EyeOff,
   AlertCircle,
-  ShieldCheck,
   Loader2,
+  ArrowRight,
   Info,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
@@ -24,7 +24,15 @@ const LS_REMEMBER_KEY = 'norynt_crm_remember_email';
 
 // High-fidelity Google SVG Icon
 const GoogleIcon = () => (
-  <svg className="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className="w-[18px] h-[18px] shrink-0"
+    style={{ width: '18px', height: '18px', minWidth: '18px', minHeight: '18px' }}
+    aria-hidden="true"
+  >
     <path
       d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
       fill="#4285F4"
@@ -46,7 +54,15 @@ const GoogleIcon = () => (
 
 // High-fidelity Microsoft SVG Icon
 const MicrosoftIcon = () => (
-  <svg className="h-5 w-5 shrink-0" viewBox="0 0 23 23" fill="currentColor" aria-hidden="true">
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 23 23"
+    fill="currentColor"
+    className="w-[18px] h-[18px] shrink-0"
+    style={{ width: '18px', height: '18px', minWidth: '18px', minHeight: '18px' }}
+    aria-hidden="true"
+  >
     <rect x="0" y="0" width="11" height="11" fill="#F25022" />
     <rect x="12" y="0" width="11" height="11" fill="#7FBA00" />
     <rect x="0" y="12" width="11" height="11" fill="#00A4EF" />
@@ -179,26 +195,30 @@ export function LoginForm() {
   function handleForgotPassword(e: React.MouseEvent) {
     e.preventDefault();
     setInfoMessage(
-      'To reset your password, please contact your Norynt CRM administrator or IT support team.'
+      'To reset your password, please contact your Norynt CRM administrator or IT support.'
+    );
+  }
+
+  function handleNeedHelp(e: React.MouseEvent) {
+    e.preventDefault();
+    setInfoMessage(
+      'Need assistance? Reach out to your CRM workspace administrator or contact support@norynt.app.'
     );
   }
 
   function handleOAuthClick(provider: string) {
     setInfoMessage(
-      `${provider} Single Sign-On is managed through your organization's identity provider. Please sign in using your standard credentials or contact IT support.`
+      `${provider} Single Sign-On is managed through your organization's directory. Please sign in using your standard credentials.`
     );
   }
 
   return (
-    <div className="relative w-full max-w-[480px] sm:max-w-[510px] rounded-[24px] bg-white dark:bg-[#0e1626] p-8 sm:p-11 shadow-[0_20px_60px_-15px_rgba(15,23,42,0.08),0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.6)] border border-slate-200/90 dark:border-slate-800/90 transition-all">
+    <div className="w-full max-w-[470px] sm:max-w-[490px] rounded-[22px] bg-white dark:bg-[#0f172a] p-9 sm:p-10 shadow-xl shadow-slate-200/50 dark:shadow-black/40 border border-slate-200/80 dark:border-slate-800 transition-all">
       
-      {/* Subtle Top Ambient Edge Highlight */}
-      <div className="pointer-events-none absolute inset-x-8 -top-px h-px bg-gradient-to-r from-transparent via-brand-500/40 to-transparent" />
-
-      {/* 1. Norynt Branding Header */}
+      {/* 1. Real Project Logo & Brand Presentation */}
       <div className="flex flex-col items-center text-center">
-        {/* Norynt Logo Mark */}
-        <div className="flex h-15 w-15 items-center justify-center rounded-2xl bg-gradient-to-b from-white to-slate-50 dark:from-slate-800 dark:to-slate-800/90 p-2.5 shadow-sm border border-slate-200/80 dark:border-slate-700/80 mb-2.5 transition-transform hover:scale-105">
+        {/* Real Norynt Logo Mark (Existing Asset, NOT AI-made) */}
+        <div className="flex h-14 w-14 items-center justify-center mb-1 transition-transform hover:scale-105">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/norynt-crm-mark.png"
@@ -207,41 +227,38 @@ export function LoginForm() {
           />
         </div>
 
-        {/* Norynt Wordmark & CRM Module Tag */}
+        {/* Brand Wordmark & Tag */}
         <div className="flex flex-col items-center leading-none">
-          <span className="text-[22px] sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+          <span className="text-[20px] font-bold text-slate-900 dark:text-white tracking-tight">
             Norynt
           </span>
-          <span className="text-[11px] font-extrabold uppercase tracking-[0.32em] text-brand-600 dark:text-brand-400 mt-1">
+          <span className="text-[9.5px] font-extrabold uppercase tracking-[0.28em] text-brand-600 dark:text-brand-400 mt-1">
             CRM
           </span>
         </div>
 
-        {/* Welcome Back & Extended Supporting Context */}
-        <h1 className="mt-6 text-2xl sm:text-[27px] font-bold text-slate-900 dark:text-white tracking-tight">
-          Welcome back
+        {/* Welcome Back & Supporting Text */}
+        <h1 className="mt-5 text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+          Welcome Back
         </h1>
-        <p className="mt-2 text-sm font-medium text-slate-600 dark:text-slate-300">
-          Sign in to your Norynt CRM account
-        </p>
-        <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
-          Access your workspace and manage your customer relationships.
+        <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-[340px]">
+          Sign in to your Norynt CRM account and continue building stronger customer relationships.
         </p>
       </div>
 
-      {/* 2. Main Substantial Authentication Form */}
-      <form onSubmit={onSubmit} className="mt-7 space-y-5" noValidate>
+      {/* 2. Authentication Form */}
+      <form onSubmit={onSubmit} className="mt-6 space-y-4" noValidate>
         {/* Email Address Field */}
         <div className="space-y-1.5">
           <label
             htmlFor="login-email"
-            className="block text-[13px] font-semibold text-slate-700 dark:text-slate-200"
+            className="block text-xs font-semibold text-slate-700 dark:text-slate-300"
           >
             Email address
           </label>
           <div className="relative">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 dark:text-slate-500">
-              <Mail className="h-5 w-5" />
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 dark:text-slate-500">
+              <Mail className="h-4.5 w-4.5" />
             </div>
             <input
               id="login-email"
@@ -256,16 +273,16 @@ export function LoginForm() {
               }}
               required
               disabled={busy}
-              className={`w-full h-[52px] rounded-xl border py-2.5 pl-12 pr-4 text-[15px] text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition-all focus:outline-none focus:ring-4 disabled:opacity-50 ${
+              className={`w-full h-11 rounded-xl border py-2 pl-10 pr-3.5 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition-colors focus:outline-none focus:ring-2 disabled:opacity-50 ${
                 emailError
                   ? 'border-rose-500 bg-rose-50/40 dark:bg-rose-950/20 focus:border-rose-500 focus:ring-rose-500/15'
-                  : 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/60 hover:border-slate-300 dark:hover:border-slate-600 focus:border-brand-500 focus:bg-white dark:focus:bg-slate-900 focus:ring-brand-500/15'
+                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/60 hover:border-slate-300 dark:hover:border-slate-600 focus:border-brand-500 focus:ring-brand-500/15'
               }`}
             />
           </div>
           {emailError && (
-            <p className="text-xs font-medium text-rose-500 dark:text-rose-400 flex items-center gap-1.5 mt-1.5">
-              <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+            <p className="text-[11px] font-medium text-rose-500 dark:text-rose-400 flex items-center gap-1.5 mt-1">
+              <AlertCircle className="h-3 w-3 shrink-0" />
               <span>{emailError}</span>
             </p>
           )}
@@ -276,21 +293,21 @@ export function LoginForm() {
           <div className="flex items-center justify-between">
             <label
               htmlFor="login-password"
-              className="block text-[13px] font-semibold text-slate-700 dark:text-slate-200"
+              className="block text-xs font-semibold text-slate-700 dark:text-slate-300"
             >
               Password
             </label>
             <button
               type="button"
               onClick={handleForgotPassword}
-              className="text-xs font-semibold text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300 transition-colors focus:outline-none"
+              className="text-xs font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 transition-colors focus:outline-none"
             >
               Forgot password?
             </button>
           </div>
           <div className="relative">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 dark:text-slate-500">
-              <Lock className="h-5 w-5" />
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 dark:text-slate-500">
+              <Lock className="h-4.5 w-4.5" />
             </div>
             <input
               id="login-password"
@@ -305,10 +322,10 @@ export function LoginForm() {
               }}
               required
               disabled={busy}
-              className={`w-full h-[52px] rounded-xl border py-2.5 pl-12 pr-12 text-[15px] text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition-all focus:outline-none focus:ring-4 disabled:opacity-50 ${
+              className={`w-full h-11 rounded-xl border py-2 pl-10 pr-10 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition-colors focus:outline-none focus:ring-2 disabled:opacity-50 ${
                 passwordError
                   ? 'border-rose-500 bg-rose-50/40 dark:bg-rose-950/20 focus:border-rose-500 focus:ring-rose-500/15'
-                  : 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/60 hover:border-slate-300 dark:hover:border-slate-600 focus:border-brand-500 focus:bg-white dark:focus:bg-slate-900 focus:ring-brand-500/15'
+                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/60 hover:border-slate-300 dark:hover:border-slate-600 focus:border-brand-500 focus:ring-brand-500/15'
               }`}
             />
             <button
@@ -316,89 +333,99 @@ export function LoginForm() {
               onClick={() => setShowPassword(!showPassword)}
               aria-label={showPassword ? 'Hide password' : 'Show password'}
               disabled={busy}
-              className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none"
+              className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none"
             >
               {showPassword ? (
-                <EyeOff className="h-5 w-5" />
+                <EyeOff className="h-4.5 w-4.5" />
               ) : (
-                <Eye className="h-5 w-5" />
+                <Eye className="h-4.5 w-4.5" />
               )}
             </button>
           </div>
           {passwordError && (
-            <p className="text-xs font-medium text-rose-500 dark:text-rose-400 flex items-center gap-1.5 mt-1.5">
-              <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+            <p className="text-[11px] font-medium text-rose-500 dark:text-rose-400 flex items-center gap-1.5 mt-1">
+              <AlertCircle className="h-3 w-3 shrink-0" />
               <span>{passwordError}</span>
             </p>
           )}
         </div>
 
-        {/* Remember Me Option */}
+        {/* Remember Me & Need Help Row */}
         <div className="flex items-center justify-between pt-0.5">
-          <label className="flex items-center gap-2.5 cursor-pointer select-none">
+          <label className="flex items-center gap-2 cursor-pointer select-none">
             <input
               type="checkbox"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
               disabled={busy}
-              className="h-4.5 w-4.5 rounded-md border-slate-300 dark:border-slate-700 text-brand-600 focus:ring-brand-500/20 transition cursor-pointer"
+              className="h-4 w-4 rounded border-slate-300 dark:border-slate-700 text-brand-600 focus:ring-brand-500/20 transition cursor-pointer"
             />
-            <span className="text-[13px] text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition font-medium">
+            <span className="text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition font-medium">
               Remember me
             </span>
           </label>
+          <button
+            type="button"
+            onClick={handleNeedHelp}
+            className="text-xs font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 transition-colors focus:outline-none"
+          >
+            Need help?
+          </button>
         </div>
 
-        {/* Informational Message Banner */}
+        {/* Info Message Banner */}
         {infoMessage && (
-          <div className="flex items-start gap-3 rounded-xl border border-sky-500/30 bg-sky-50 dark:bg-sky-950/30 p-3.5 text-xs text-sky-700 dark:text-sky-300 animate-slide-down">
-            <Info className="h-4.5 w-4.5 shrink-0 mt-0.5 text-sky-500" />
+          <div className="flex items-start gap-2.5 rounded-xl border border-sky-500/30 bg-sky-50 dark:bg-sky-950/30 p-3 text-xs text-sky-700 dark:text-sky-300 animate-slide-down">
+            <Info className="h-4 w-4 shrink-0 mt-0.5 text-sky-500" />
             <div className="leading-relaxed">{infoMessage}</div>
           </div>
         )}
 
         {/* Error Alert Box */}
         {error && (
-          <div className="flex items-start gap-3 rounded-xl border border-rose-500/30 bg-rose-50 dark:bg-rose-950/30 p-3.5 text-xs font-medium text-rose-600 dark:text-rose-400 animate-slide-down">
-            <AlertCircle className="h-4.5 w-4.5 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-2.5 rounded-xl border border-rose-500/30 bg-rose-50 dark:bg-rose-950/30 p-3 text-xs font-medium text-rose-600 dark:text-rose-400 animate-slide-down">
+            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
             <div className="leading-relaxed">{error}</div>
           </div>
         )}
 
-        {/* Substantial Sign In Button */}
+        {/* Primary CTA Sign In Button with Arrow */}
         <button
           type="submit"
           disabled={busy}
-          className="w-full h-[52px] rounded-xl bg-gradient-to-r from-brand-600 via-indigo-600 to-brand-700 hover:from-brand-500 hover:via-indigo-500 hover:to-brand-600 active:scale-[0.99] font-semibold text-[15px] text-white shadow-lg shadow-brand-600/25 transition-all flex items-center justify-center gap-2.5 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer mt-2.5"
+          className="w-full h-11 rounded-xl bg-gradient-to-r from-brand-600 via-indigo-600 to-brand-600 hover:from-brand-500 hover:via-indigo-500 hover:to-brand-500 active:scale-[0.99] font-semibold text-sm text-white shadow-md shadow-brand-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer mt-2"
         >
           {busy ? (
             <>
-              <Loader2 className="h-5 w-5 animate-spin text-white" />
+              <Loader2 className="h-4 w-4 animate-spin text-white" />
               <span>Signing in...</span>
             </>
           ) : (
-            <span>Sign In</span>
+            <>
+              <span>Sign In</span>
+              <ArrowRight className="h-4 w-4" />
+            </>
           )}
         </button>
       </form>
 
-      {/* 3. Divider: Or Continue With */}
-      <div className="relative my-6 flex items-center justify-center">
+      {/* 3. Divider: OR CONTINUE WITH */}
+      <div className="relative my-5 flex items-center justify-center">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-slate-200 dark:border-slate-800" />
         </div>
-        <span className="relative bg-white dark:bg-[#0e1626] px-3.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 select-none">
+        <span className="relative bg-white dark:bg-[#0f172a] px-3 text-[10.5px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 select-none">
           or continue with
         </span>
       </div>
 
-      {/* 4. Secondary Social Login Buttons */}
-      <div className="grid grid-cols-2 gap-3.5 select-none">
+      {/* 4. Social SSO Buttons */}
+      <div className="grid grid-cols-2 gap-3 select-none">
         <button
           type="button"
           onClick={() => handleOAuthClick('Google')}
           disabled={busy}
-          className="h-[48px] rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-800 text-[13px] font-semibold text-slate-700 dark:text-slate-200 transition-all flex items-center justify-center gap-2.5 shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer disabled:opacity-60"
+          className="h-11 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors flex items-center justify-center gap-2 px-2.5 shadow-2xs cursor-pointer disabled:opacity-60"
         >
           <GoogleIcon />
           <span>Google</span>
@@ -408,26 +435,11 @@ export function LoginForm() {
           type="button"
           onClick={() => handleOAuthClick('Microsoft')}
           disabled={busy}
-          className="h-[48px] rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-800 text-[13px] font-semibold text-slate-700 dark:text-slate-200 transition-all flex items-center justify-center gap-2.5 shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer disabled:opacity-60"
+          className="h-11 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors flex items-center justify-center gap-2 px-2.5 shadow-2xs cursor-pointer disabled:opacity-60"
         >
           <MicrosoftIcon />
           <span>Microsoft</span>
         </button>
-      </div>
-
-      {/* 5. Enterprise Security Trust Indicator */}
-      <div className="mt-7 flex items-center gap-3.5 rounded-xl bg-slate-50/80 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/60 p-3 select-none">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/40 shrink-0 text-emerald-600 dark:text-emerald-400">
-          <ShieldCheck className="h-4.5 w-4.5" />
-        </div>
-        <div className="text-left leading-tight">
-          <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-            Enterprise-grade security
-          </div>
-          <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-            Your data is protected with secure authentication.
-          </div>
-        </div>
       </div>
     </div>
   );
