@@ -1,0 +1,17 @@
+{
+  "name": "Norynt CRM",
+  "short_name": "Norynt",
+  "description": "Norynt CRM platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "/norynt-crm-mark.png",
+      "sizes": "379x379",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

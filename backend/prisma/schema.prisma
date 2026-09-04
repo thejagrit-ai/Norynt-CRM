@@ -1,0 +1,1369 @@
+// backend/prisma/schema.prisma
+// Enterprise CRM Data Model — RBAC, Multi-Tenancy, CPQ, Tasks, Tickets, Approvals, AI, Quotas & Audit.
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String            @id @default(uuid())
+  email             String            @unique
+  passwordHash      String // bcrypt
+  firstName         String
+  lastName          String
+  isActive          Boolean           @default(true)
+  tenantId          String?
+  roles             UserRole[]
+  refreshTokens     RefreshToken[]
+  ownedDeals        Deal[]            @relation("DealOwner")
+  tasksAssigned     Task[]            @relation("TaskAssignee")
+  tasksCreated      Task[]            @relation("TaskCreator")
+  ticketsAssigned   Ticket[]          @relation("TicketAssignee")
+  approvalsReviewed ApprovalRequest[] @relation("ApprovalReviewer")
+  quotas            Quota[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([email])
+  @@index([tenantId])
+}
+
+model Role {
+  id          String           @id @default(uuid())
+  name        String           @unique // e.g., ADMIN, SALES, FINANCE, SUPPORT
+  description String?
+  users       UserRole[]
+  permissions RolePermission[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model Permission {
+  id          String           @id @default(uuid())
+  action      String           @unique // e.g. "deal.create", "task.read", "ticket.manage"
+  description String?
+  roles       RolePermission[]
+  createdAt   DateTime         @default(now())
+}
+
+model UserRole {
+  userId String
+  roleId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ===== Sales (Deal) & Kanban =====
+
+model Pipeline {
+  id        String   @id @default(uuid())
+  name      String
+  isDefault Boolean  @default(false)
+  stages    Stage[]
+  deals     Deal[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Stage {
+  id         String   @id @default(uuid())
+  pipelineId String
+  name       String
+  position   Int
+  isWon      Boolean  @default(false)
+  isLost     Boolean  @default(false)
+  pipeline   Pipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  deals      Deal[]
+
+  @@unique([pipelineId, position])
+  @@index([pipelineId])
+}
+
+enum DealStatus {
+  OPEN
+  WON
+  LOST
+}
+
+model Deal {
+  id              String         @id @default(uuid())
+  pipelineId      String
+  stageId         String
+  title           String
+  contactName     String?
+  email           String?
+  phone           String?
+  company         String?
+  value           Decimal?       @db.Decimal(14, 2)
+  currency        String         @default("TRY")
+  rank            Decimal        @db.Decimal(30, 15)
+  ownerId         String?
+  contactId       String?
+  companyId       String?
+  customFields    Json?
+  status          DealStatus     @default(OPEN)
+  healthScore     Int?           @default(100) // 0-100
+  riskFactors     Json?          @default("[]") // ["no_activity_14d", "stalled_stage"]
+  expectedCloseAt DateTime?
+  pipeline        Pipeline       @relation(fields: [pipelineId], references: [id])
+  stage           Stage          @relation(fields: [stageId], references: [id])
+  owner           User?          @relation("DealOwner", fields: [ownerId], references: [id])
+  activities      DealActivity[]
+  invoices        Invoice[]
+  quotes          Quote[]
+  tasks           Task[]
+  tickets         Ticket[]
+  tenantId        String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  deletedAt       DateTime?
+
+  @@index([stageId, rank])
+  @@index([ownerId])
+  @@index([pipelineId, status])
+  @@index([tenantId])
+  @@index([contactId])
+  @@index([companyId])
+}
+
+model DealActivity {
+  id        String   @id @default(uuid())
+  dealId    String
+  userId    String
+  type      String // NOTE, STAGE_CHANGE, CALL, EMAIL, AUTOMATION
+  payload   Json?
+  createdAt DateTime @default(now())
+  deal      Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([dealId, createdAt])
+}
+
+// ===== Finance & Invoicing =====
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+model Invoice {
+  id             String            @id @default(uuid())
+  number         String?           @unique
+  dealId         String?
+  customerName   String
+  customerEmail  String?
+  status         InvoiceStatus     @default(DRAFT)
+  currency       String            @default("TRY")
+  subtotal       Decimal           @db.Decimal(14, 2)
+  taxRate        Decimal           @db.Decimal(5, 2)
+  taxAmount      Decimal           @db.Decimal(14, 2)
+  total          Decimal           @db.Decimal(14, 2)
+  amountPaid     Decimal           @default(0) @db.Decimal(14, 2)
+  issuedAt       DateTime?
+  dueAt          DateTime?
+  deal           Deal?             @relation(fields: [dealId], references: [id])
+  lineItems      InvoiceLineItem[]
+  payments       Payment[]
+  paymentIntents PaymentIntent[]
+  createdById    String
+  tenantId       String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([status])
+  @@index([dealId])
+  @@index([dueAt])
+  @@index([tenantId])
+}
+
+model InvoiceLineItem {
+  id          String  @id @default(uuid())
+  invoiceId   String
+  description String
+  quantity    Decimal @db.Decimal(12, 3)
+  unitPrice   Decimal @db.Decimal(14, 2)
+  lineTotal   Decimal @db.Decimal(14, 2)
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+}
+
+model Payment {
+  id           String   @id @default(uuid())
+  invoiceId    String
+  amount       Decimal  @db.Decimal(14, 2)
+  method       String // BANK, CARD, CASH
+  reference    String?
+  paidAt       DateTime @default(now())
+  recordedById String
+  invoice      Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+}
+
+model InvoiceCounter {
+  year       Int @id
+  lastNumber Int @default(0)
+}
+
+model PaymentIntent {
+  id             String   @id @default(uuid())
+  tenantId       String?
+  invoiceId      String
+  provider       String   @default("razorpay")
+  token          String   @unique
+  conversationId String   @unique
+  amount         Decimal  @db.Decimal(14, 2)
+  currency       String   @default("INR")
+  status         String   @default("pending")
+  providerRef    String?
+  metadata       Json?
+  createdById    String
+  invoice        Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([invoiceId])
+  @@index([tenantId])
+}
+
+// ===== CPQ: Products & Quotes =====
+
+model Product {
+  id          String          @id @default(uuid())
+  sku         String?         @unique
+  name        String
+  description String?
+  unitPrice   Decimal         @db.Decimal(14, 2)
+  currency    String          @default("TRY")
+  taxRate     Decimal         @default(0) @db.Decimal(5, 2)
+  active      Boolean         @default(true)
+  tenantId    String?
+  deletedAt   DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  quoteItems  QuoteLineItem[]
+
+  @@index([active])
+  @@index([tenantId])
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  CONVERTED
+}
+
+model Quote {
+  id                 String          @id @default(uuid())
+  number             String?         @unique
+  dealId             String?
+  customerName       String
+  customerEmail      String?
+  status             QuoteStatus     @default(DRAFT)
+  currency           String          @default("TRY")
+  subtotal           Decimal         @db.Decimal(14, 2)
+  taxRate            Decimal         @db.Decimal(5, 2)
+  taxAmount          Decimal         @db.Decimal(14, 2)
+  total              Decimal         @db.Decimal(14, 2)
+  validUntil         DateTime?
+  convertedInvoiceId String?         @unique
+  deal               Deal?           @relation(fields: [dealId], references: [id])
+  lineItems          QuoteLineItem[]
+  createdById        String
+  tenantId           String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  @@index([status])
+  @@index([dealId])
+  @@index([tenantId])
+}
+
+model QuoteLineItem {
+  id          String   @id @default(uuid())
+  quoteId     String
+  productId   String?
+  description String
+  quantity    Decimal  @db.Decimal(12, 3)
+  unitPrice   Decimal  @db.Decimal(14, 2)
+  lineTotal   Decimal  @db.Decimal(14, 2)
+  quote       Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  product     Product? @relation(fields: [productId], references: [id])
+
+  @@index([quoteId])
+  @@index([productId])
+}
+
+model QuoteCounter {
+  year       Int @id
+  lastNumber Int @default(0)
+}
+
+// ===== External Integrations & Webhooks =====
+
+enum DeliveryStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  DEAD
+}
+
+model WebhookSubscription {
+  id          String            @id @default(uuid())
+  url         String
+  events      String[]
+  secret      String
+  isActive    Boolean           @default(true)
+  createdById String
+  createdAt   DateTime          @default(now())
+  deliveries  WebhookDelivery[]
+}
+
+model WebhookDelivery {
+  id             String              @id @default(uuid())
+  subscriptionId String
+  event          String
+  payload        Json
+  status         DeliveryStatus      @default(PENDING)
+  attempts       Int                 @default(0)
+  lastError      String?
+  nextRetryAt    DateTime?
+  signature      String
+  createdAt      DateTime            @default(now())
+  subscription   WebhookSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([status, nextRetryAt])
+  @@index([subscriptionId])
+}
+
+model EmailLog {
+  id        String   @id @default(uuid())
+  to        String
+  subject   String
+  template  String
+  status    String
+  error     String?
+  createdAt DateTime @default(now())
+}
+
+model ProcessedWebhook {
+  key       String   @id
+  source    String
+  createdAt DateTime @default(now())
+}
+
+// ===== Multi-Tenancy =====
+
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+// ===== Core CRM: Company, Contact & Lead =====
+
+model Company {
+  id              String     @id @default(uuid())
+  name            String
+  domain          String?
+  industry        String?
+  phone           String?
+  website         String?
+  ownerId         String?
+  tenantId        String?
+  parentCompanyId String?
+  parentCompany   Company?   @relation("CompanyHierarchy", fields: [parentCompanyId], references: [id], onDelete: SetNull)
+  subsidiaries    Company[]  @relation("CompanyHierarchy")
+  contacts        Contact[]
+  tasks           Task[]
+  tickets         Ticket[]
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@index([tenantId])
+  @@index([name])
+  @@index([parentCompanyId])
+}
+
+model Contact {
+  id        String   @id @default(uuid())
+  firstName String
+  lastName  String
+  email     String?
+  phone     String?
+  title     String?
+  roleType  String?  @default("DECISION_MAKER") // DECISION_MAKER, CHAMPION, INFLUENCER, BLOCKER, EXECUTIVE_SPONSOR, PROCUREMENT, TECHNICAL
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  ownerId   String?
+  tenantId  String?
+  tasks     Task[]
+  tickets   Ticket[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([tenantId])
+  @@index([email])
+}
+
+enum LeadStatus {
+  NEW
+  WORKING
+  QUALIFIED
+  UNQUALIFIED
+  CONVERTED
+}
+
+enum LeadChannel {
+  MANUAL
+  IMPORT
+  FORM
+  WEBHOOK
+  API
+}
+
+model Lead {
+  id                 String      @id @default(uuid())
+  firstName          String
+  lastName           String
+  email              String?
+  phone              String?
+  companyName        String?
+  source             String?
+  channel            LeadChannel @default(MANUAL)
+  formId             String?
+  meta               Json?
+  status             LeadStatus  @default(NEW)
+  ownerId            String?
+  tenantId           String?
+  convertedContactId String?
+  convertedDealId    String?
+  tasks              Task[]
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  form LeadForm? @relation(fields: [formId], references: [id], onDelete: SetNull)
+  groupMembers       LeadGroupMember[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([channel])
+  @@index([formId])
+}
+
+model LeadForm {
+  id             String   @id @default(uuid())
+  tenantId       String?
+  name           String
+  publicKey      String   @unique
+  secret         String
+  fields         Json     @default("[]")
+  buttonColor    String   @default("#4f46e5")
+  buttonLabel    String   @default("Gönder")
+  successMessage String?
+  redirectUrl    String?
+  isActive       Boolean  @default(true)
+  submitCount    Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  leads Lead[]
+
+  @@index([tenantId])
+}
+
+model Meeting {
+  id        String   @id @default(uuid())
+  title     String
+  startsAt  DateTime
+  endsAt    DateTime
+  location  String?
+  notes     String?
+  dealId    String?
+  contactId String?
+  ownerId   String?
+  tenantId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId])
+  @@index([startsAt])
+  @@index([tenantId])
+}
+
+// ===== Task Management Subsystem =====
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model Task {
+  id           String       @id @default(uuid())
+  title        String
+  description  String?      @db.Text
+  status       TaskStatus   @default(TODO)
+  priority     TaskPriority @default(MEDIUM)
+  dueDate      DateTime?
+  completedAt  DateTime?
+  tags         String[]     @default([])
+  assignedToId String?
+  assignedTo   User?        @relation("TaskAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  createdById  String?
+  createdBy    User?        @relation("TaskCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  leadId       String?
+  lead         Lead?        @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  contactId    String?
+  contact      Contact?     @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  companyId    String?
+  company      Company?     @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  dealId       String?
+  deal         Deal?        @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  tenantId     String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([assignedToId])
+  @@index([status])
+  @@index([dueDate])
+  @@index([tenantId])
+  @@index([dealId])
+  @@index([contactId])
+  @@index([companyId])
+}
+
+// ===== Customer Support & Ticketing =====
+
+enum TicketStatus {
+  OPEN
+  PENDING
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model Ticket {
+  id           String          @id @default(uuid())
+  number       String          @unique // TCK-2026-0001
+  subject      String
+  description  String          @db.Text
+  status       TicketStatus    @default(OPEN)
+  priority     TicketPriority  @default(MEDIUM)
+  contactId    String?
+  contact      Contact?        @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  companyId    String?
+  company      Company?        @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  dealId       String?
+  deal         Deal?           @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  assignedToId String?
+  assignedTo   User?           @relation("TicketAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  messages     TicketMessage[]
+  tenantId     String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@index([status])
+  @@index([priority])
+  @@index([assignedToId])
+  @@index([contactId])
+  @@index([companyId])
+  @@index([tenantId])
+}
+
+model TicketMessage {
+  id         String   @id @default(uuid())
+  ticketId   String
+  senderType String   @default("AGENT") // AGENT, CUSTOMER, SYSTEM
+  senderId   String?
+  body       String   @db.Text
+  isInternal Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  ticket     Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId, createdAt])
+}
+
+model TicketCounter {
+  year       Int @id
+  lastNumber Int @default(0)
+}
+
+// ===== Sales Rep Quotas & Goals =====
+
+model Quota {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  year         Int
+  month        Int      // 1-12
+  targetAmount Decimal  @db.Decimal(14, 2)
+  currency     String   @default("TRY")
+  tenantId     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([userId, year, month])
+  @@index([userId])
+  @@index([tenantId])
+}
+
+// ===== AI Governance & Human-In-The-Loop (HITL) =====
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+model ApprovalRequest {
+  id              String         @id @default(uuid())
+  tenantId        String?
+  agentName       String         // e.g. "PipelineAgent", "SalesAssistant"
+  actionType      String         // e.g. "send_email", "apply_discount", "update_deal_value"
+  payload         Json
+  reason          String         @db.Text
+  riskLevel       String         @default("MEDIUM") // LOW, MEDIUM, HIGH
+  status          ApprovalStatus @default(PENDING)
+  requestedById   String?
+  reviewedById    String?
+  reviewedBy      User?          @relation("ApprovalReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt      DateTime?
+  executionResult Json?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([status])
+  @@index([tenantId])
+}
+
+// ===== Developer Platform: API Keys =====
+
+model ApiKey {
+  id          String    @id @default(uuid())
+  name        String
+  prefix      String    // e.g. "crm_live_..."
+  keyHash     String    @unique
+  scopes      String[]  @default(["read", "write"])
+  tenantId    String?
+  createdById String
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([tenantId])
+  @@index([prefix])
+}
+
+// ===== Automation Rules =====
+
+model AutomationRule {
+  id          String   @id @default(uuid())
+  name        String
+  trigger     String
+  conditions  Json?
+  actions     Json
+  isActive    Boolean  @default(true)
+  createdById String?
+  tenantId    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([trigger, isActive])
+  @@index([tenantId])
+}
+
+// ===== Custom Fields =====
+
+enum CustomFieldEntity {
+  DEAL
+  CONTACT
+  COMPANY
+  LEAD
+}
+
+enum CustomFieldType {
+  TEXT
+  NUMBER
+  BOOLEAN
+  DATE
+  SELECT
+}
+
+model CustomFieldDef {
+  id        String            @id @default(uuid())
+  entity    CustomFieldEntity
+  key       String
+  label     String
+  type      CustomFieldType
+  options   String[]          @default([])
+  required  Boolean           @default(false)
+  createdAt DateTime          @default(now())
+
+  @@unique([entity, key])
+  @@index([entity])
+}
+
+// ===== Audit Logging =====
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  actorId     String?
+  actorEmail  String?
+  actorRole   String?
+  action      String
+  entity      String
+  entityId    String?
+  description String?
+  path        String?
+  statusCode  Int?
+  ip          String?
+  userAgent   String?
+  before      Json?
+  after       Json?
+  metadata    Json?
+  tenantId    String?
+  createdAt   DateTime @default(now())
+
+  @@index([actorId])
+  @@index([entity, createdAt])
+  @@index([action, createdAt])
+  @@index([createdAt])
+  @@index([tenantId])
+}
+
+model SystemSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     Json
+  updatedBy String?
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
+model Branding {
+  id        String   @id @default("singleton")
+  appName   String?
+  logo      String?  @db.Text
+  updatedAt DateTime @updatedAt
+}
+
+// ===== Integrations & Encrypted Vault =====
+
+model Connection {
+  id         String   @id @default(uuid())
+  tenantId   String?
+  provider   String
+  label      String?
+  status     String   @default("connected")
+  secretsEnc String?  @db.Text
+  config     Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([provider])
+}
+
+model WhatsAppMessage {
+  id        String   @id @default(uuid())
+  tenantId  String?
+  direction String
+  phone     String
+  body      String   @db.Text
+  status    String   @default("sent")
+  error     String?
+  waId      String?
+  leadId    String?
+  contactId String?
+  createdAt DateTime @default(now())
+
+  @@index([phone, createdAt])
+  @@index([leadId])
+  @@index([contactId])
+  @@index([tenantId])
+}
+
+model AccountingSync {
+  id         String   @id @default(uuid())
+  invoiceId  String   @unique
+  provider   String
+  externalId String?
+  status     String   @default("PENDING")
+  error      String?
+  attempts   Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([status])
+}
+
+// ===== Brand Radar Suite =====
+
+model Brand {
+  id             String   @id @default(uuid())
+  tenantId       String?
+  name           String
+  sector         String?
+  niche          String?
+  description    String?  @db.Text
+  targetAudience String?
+  priceBand      String?
+  markets        Json     @default("[]")
+  keywords       Json     @default("[]")
+  answers        Json?
+  aiEnriched     Boolean  @default(false)
+  createdById    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+model Competitor {
+  id        String   @id @default(uuid())
+  tenantId  String?
+  brandId   String
+  name      String
+  domain    String?
+  instagram String?
+  notes     String?  @db.Text
+  source    String   @default("manual")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([brandId])
+  @@index([tenantId])
+}
+
+model SavedAd {
+  id          String   @id @default(uuid())
+  tenantId    String?
+  brandId     String
+  adArchiveId String
+  pageName    String?
+  body        String?  @db.Text
+  snapshotUrl String?
+  startTime   String?
+  platforms   Json?
+  createdAt   DateTime @default(now())
+
+  @@unique([brandId, adArchiveId])
+  @@index([brandId])
+  @@index([tenantId])
+}
+
+model CompetitorProduct {
+  id        String       @id @default(uuid())
+  tenantId  String?
+  brandId   String
+  name      String
+  url       String?
+  currency  String       @default("TRY")
+  price     Decimal      @db.Decimal(14, 2)
+  source    String       @default("csv")
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  prices    PricePoint[]
+
+  @@unique([brandId, name])
+  @@index([brandId])
+  @@index([tenantId])
+}
+
+model PricePoint {
+  id         String            @id @default(uuid())
+  productId  String
+  price      Decimal           @db.Decimal(14, 2)
+  capturedAt DateTime          @default(now())
+  product    CompetitorProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, capturedAt])
+}
+
+// ===== Sales: Lead Groups & Segments =====
+
+model LeadGroup {
+  id          String            @id @default(uuid())
+  name        String
+  description String?           @db.Text
+  color       String?           @default("#3b82f6")
+  tenantId    String?
+  createdById String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  members     LeadGroupMember[]
+
+  @@index([tenantId])
+}
+
+model LeadGroupMember {
+  id          String    @id @default(uuid())
+  leadGroupId String
+  leadId      String
+  assignedAt  DateTime  @default(now())
+  leadGroup   LeadGroup @relation(fields: [leadGroupId], references: [id], onDelete: Cascade)
+  lead        Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@unique([leadGroupId, leadId])
+  @@index([leadGroupId])
+  @@index([leadId])
+}
+
+model ContactSegment {
+  id          String   @id @default(uuid())
+  name        String
+  description String?  @db.Text
+  filterRules Json     @default("[]")
+  tenantId    String?
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+// ===== Marketing: Campaigns, Templates, Warmup & Funnels =====
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+  CANCELLED
+}
+
+model EmailCampaign {
+  id              String         @id @default(uuid())
+  name            String
+  subject         String
+  previewText     String?
+  fromName        String
+  fromEmail       String
+  templateId      String?
+  segmentId       String?
+  status          CampaignStatus @default(DRAFT)
+  scheduledAt     DateTime?
+  sentAt          DateTime?
+  totalRecipients Int            @default(0)
+  sentCount       Int            @default(0)
+  openCount       Int            @default(0)
+  clickCount      Int            @default(0)
+  bounceCount     Int            @default(0)
+  content         String         @db.Text
+  tenantId        String?
+  createdById     String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([status])
+  @@index([tenantId])
+}
+
+model SmsCampaign {
+  id              String         @id @default(uuid())
+  name            String
+  senderId        String
+  message         String         @db.Text
+  segmentId       String?
+  status          CampaignStatus @default(DRAFT)
+  totalRecipients Int            @default(0)
+  sentCount       Int            @default(0)
+  deliveredCount  Int            @default(0)
+  scheduledAt     DateTime?
+  sentAt          DateTime?
+  tenantId        String?
+  createdById     String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([status])
+  @@index([tenantId])
+}
+
+enum TemplateChannel {
+  EMAIL
+  SMS
+  WHATSAPP
+}
+
+model MessageTemplate {
+  id          String          @id @default(uuid())
+  name        String
+  channel     TemplateChannel @default(EMAIL)
+  category    String          @default("marketing")
+  subject     String?
+  content     String          @db.Text
+  variables   Json            @default("[]")
+  isActive    Boolean         @default(true)
+  tenantId    String?
+  createdById String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([channel])
+  @@index([tenantId])
+}
+
+model EmailWarmupProfile {
+  id              String   @id @default(uuid())
+  emailAddress    String
+  provider        String   @default("Google Workspace")
+  status          String   @default("ACTIVE") // ACTIVE, PAUSED, COMPLETED
+  dailyLimit      Int      @default(50)
+  currentDay      Int      @default(1)
+  healthScore     Int      @default(98)
+  emailsSentToday Int      @default(0)
+  inboxRate       Decimal  @default(99.2) @db.Decimal(5, 2)
+  spamRate        Decimal  @default(0.4) @db.Decimal(5, 2)
+  tenantId        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+model MarketingFunnel {
+  id          String        @id @default(uuid())
+  name        String
+  description String?       @db.Text
+  isActive    Boolean       @default(true)
+  tenantId    String?
+  createdById String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  stages      FunnelStage[]
+
+  @@index([tenantId])
+}
+
+model FunnelStage {
+  id           String          @id @default(uuid())
+  funnelId     String
+  name         String
+  order        Int             @default(0)
+  visitors     Int             @default(0)
+  conversions  Int             @default(0)
+  dropoffRate  Decimal         @default(0) @db.Decimal(5, 2)
+  funnel       MarketingFunnel @relation(fields: [funnelId], references: [id], onDelete: Cascade)
+
+  @@index([funnelId, order])
+}
+
+// ===== Messaging: WhatsApp Broadcasts, HSM Templates & Quick Replies =====
+
+model WhatsAppBroadcast {
+  id             String   @id @default(uuid())
+  name           String
+  templateName   String
+  language       String   @default("en_US")
+  targetAudience String   @default("All Leads")
+  totalCount     Int      @default(0)
+  successCount   Int      @default(0)
+  failedCount    Int      @default(0)
+  status         String   @default("DRAFT") // DRAFT, SCHEDULED, IN_PROGRESS, COMPLETED
+  scheduledAt    DateTime?
+  sentAt         DateTime?
+  tenantId       String?
+  createdById    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([status])
+  @@index([tenantId])
+}
+
+model WhatsAppTemplate {
+  id            String   @id @default(uuid())
+  name          String
+  category      String   @default("MARKETING") // MARKETING, UTILITY, AUTHENTICATION
+  language      String   @default("en_US")
+  headerType    String   @default("NONE") // NONE, TEXT, IMAGE, DOCUMENT, VIDEO
+  headerContent String?
+  bodyContent   String   @db.Text
+  footerContent String?
+  buttons       Json     @default("[]")
+  status        String   @default("APPROVED") // APPROVED, PENDING, REJECTED
+  tenantId      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([status])
+  @@index([tenantId])
+}
+
+model QuickReply {
+  id          String   @id @default(uuid())
+  shortcut    String
+  title       String
+  body        String   @db.Text
+  category    String   @default("general")
+  tenantId    String?
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+// ===== Support: Knowledge Base & FAQ Portal =====
+
+model FaqCategory {
+  id          String             @id @default(uuid())
+  name        String
+  slug        String             @unique
+  description String?
+  icon        String?            @default("HelpCircle")
+  position    Int                @default(0)
+  tenantId    String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  articles    KnowledgeArticle[]
+
+  @@index([tenantId])
+}
+
+model KnowledgeArticle {
+  id           String      @id @default(uuid())
+  categoryId   String
+  title        String
+  slug         String      @unique
+  content      String      @db.Text
+  isPublished  Boolean     @default(true)
+  viewCount    Int         @default(0)
+  helpfulCount Int         @default(0)
+  tenantId     String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  category     FaqCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([categoryId])
+  @@index([tenantId])
+}
+
+// ===== Finance Masters: Tax Slabs, UOM & T&C Sets =====
+
+model TaxSlab {
+  id        String   @id @default(uuid())
+  name      String
+  rate      Decimal  @db.Decimal(5, 2)
+  cgstRate  Decimal? @default(0) @db.Decimal(5, 2)
+  sgstRate  Decimal? @default(0) @db.Decimal(5, 2)
+  igstRate  Decimal? @default(0) @db.Decimal(5, 2)
+  isDefault Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  tenantId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+model UnitOfMeasure {
+  id        String   @id @default(uuid())
+  code      String   // PCS, KG, BOX, HRS, SET, MONTH
+  name      String   // Pieces, Kilograms, Box, Hours...
+  symbol    String?
+  precision Int      @default(0)
+  isActive  Boolean  @default(true)
+  tenantId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+model TermsConditionSet {
+  id        String   @id @default(uuid())
+  title     String
+  type      String   @default("QUOTATION") // QUOTATION, INVOICE, GENERAL
+  content   String   @db.Text
+  isDefault Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  tenantId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+// ===== Insights: Custom Reports =====
+
+model CustomReportDef {
+  id          String   @id @default(uuid())
+  name        String
+  description String?  @db.Text
+  entity      String   @default("DEAL") // DEAL, LEAD, INVOICE, TICKET, CONTACT
+  metrics     Json     @default("[]")
+  groupBy     String?  @default("status")
+  dateRange   String?  @default("this_month")
+  chartType   String   @default("BAR") // BAR, LINE, PIE, TABLE
+  tenantId    String?
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+// ===== Resources: Media Library =====
+
+model MediaFile {
+  id           String   @id @default(uuid())
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int
+  url          String
+  folder       String?  @default("general")
+  tags         Json?    @default("[]")
+  tenantId     String?
+  uploadedById String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([folder])
+}
+
+// ===== Admin & Settings: Subscriptions, SLAs, Masters, Auto-Assignment & Chatbot =====
+
+model TenantSubscription {
+  id               String   @id @default(uuid())
+  tenantId         String?  @unique
+  planTier         String   @default("ENTERPRISE") // STARTER, PRO, ENTERPRISE
+  status           String   @default("ACTIVE")     // ACTIVE, TRIAL, PAST_DUE, CANCELLED
+  billingCycle     String   @default("MONTHLY")    // MONTHLY, YEARLY
+  seatLimit        Int      @default(50)
+  usedSeats        Int      @default(8)
+  emailMonthlyLimit Int     @default(50000)
+  usedEmails       Int      @default(12450)
+  storageLimitMb   Int      @default(100000)
+  usedStorageMb    Int      @default(4820)
+  apiMonthlyLimit  Int      @default(1000000)
+  usedApiRequests  Int      @default(142000)
+  renewsAt         DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+model TicketSlaPolicy {
+  id                  String   @id @default(uuid())
+  priority            String   @unique // LOW, MEDIUM, HIGH, URGENT
+  responseTimeHours   Int      @default(24)
+  resolutionTimeHours Int      @default(48)
+  autoEscalate        Boolean  @default(true)
+  tenantId            String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+model LeadMasterOption {
+  id        String   @id @default(uuid())
+  category  String   // LOSS_REASON, SOURCE, RATING, STATUS
+  key       String
+  label     String
+  color     String?  @default("#64748b")
+  isDefault Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  tenantId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([category, key])
+  @@index([category])
+  @@index([tenantId])
+}
+
+model AssignmentRule {
+  id              String   @id @default(uuid())
+  type            String   // LEAD, DEAL
+  name            String
+  strategy        String   @default("ROUND_ROBIN") // ROUND_ROBIN, WEIGHTED, CONDITIONAL
+  conditions      Json     @default("[]")
+  assignedUserIds Json     @default("[]") // Array of User IDs or weights
+  isActive        Boolean  @default(true)
+  tenantId        String?
+  createdById     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([type, isActive])
+  @@index([tenantId])
+}
+
+model ChatbotConfig {
+  id                 String   @id @default(uuid())
+  tenantId           String?  @unique
+  botName            String   @default("Norynt Assistant")
+  welcomeMessage     String   @default("Hi there! 👋 How can I help you explore our enterprise solutions today?")
+  promptInstructions String   @db.Text
+  primaryColor       String   @default("#4f46e5")
+  position           String   @default("bottom-right") // bottom-right, bottom-left
+  isActive           Boolean  @default(true)
+  scriptKey          String   @unique @default(uuid())
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+

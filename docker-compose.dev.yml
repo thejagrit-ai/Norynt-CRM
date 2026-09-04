@@ -1,0 +1,19 @@
+# docker-compose.dev.yml — Geliştirme override'ı (hot-reload + DB portu açık).
+# Kullanım: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#
+# Yalnız veritabanını ayağa kaldırmak için (backend'i lokalde npm ile çalıştırırken):
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d db
+services:
+  db:
+    # Dev'de DB portu host'a açılır (lokal npm/prisma erişimi için).
+    ports:
+      - '5432:5432'
+
+  backend:
+    # Hot-reload; kaynak bind mount.
+    command: sh -c "npx prisma migrate deploy && npm run start:dev"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: development

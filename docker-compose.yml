@@ -1,0 +1,79 @@
+# docker-compose.yml — Prod-benzeri yığın (backend + PostgreSQL + MailHog).
+# Geliştirme (hot-reload + DB portu) için: docker-compose.dev.yml override'ı ile çalıştır:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+# Ortam değişkenleri için kök .env (bkz. .env.example) kullanılır.
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-acik_kaynak_crm}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-postgres}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Güvenlik: DB portu host'a AÇILMAZ (yalnız iç ağ). Dev override'da açılır.
+    networks: [internal]
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # DB'ye servis adıyla bağlan (compose iç ağı).
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-acik_kaynak_crm}?schema=public
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - '3000:3000'
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3000/api/v1/health']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks: [internal, web]
+
+  mailhog:
+    image: mailhog/mailhog
+    restart: unless-stopped
+    ports:
+      - '8025:8025' # web arayüzü (yakalanan e-postalar)
+    networks: [internal]
+
+  # Next.js paneli. /api isteklerini sunucu tarafında backend'e proxy'ler.
+  # BACKEND_URL build anında baked olur (Next rewrites) — bu yüzden build arg.
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        BACKEND_URL: http://backend:3000
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - '3001:3001'
+    networks: [internal]
+
+  # Cloudflare hızlı tüneli — paneli internetten erişilebilir kılar.
+  # restart: unless-stopped → oturum/teardown'dan bağımsız ayakta kalır.
+  # URL'i loglardan oku: docker compose logs tunnel | grep trycloudflare
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --url http://frontend:3001
+    depends_on:
+      - frontend
+    networks: [internal]
+
+volumes:
+  db_data:
+
+networks:
+  internal: # db + backend + frontend + tunnel (paylaşılan iç ağ)
+  web: # ters proxy (ileride)

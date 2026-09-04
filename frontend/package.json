@@ -1,0 +1,35 @@
+{
+  "name": "norynt-crm-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Norynt CRM Next.js frontend (Atomic Design)",
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "build:check": "node scripts/build-check.js",
+    "typecheck": "tsc --noEmit",
+    "clean": "node -e \"const fs=require('fs'); fs.rmSync('.next', {recursive:true,force:true}); fs.rmSync('.next-check', {recursive:true,force:true}); console.log('Cleaned build caches');\"",
+    "start": "next start -p 3001",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.59.0",
+    "axios": "^1.7.7",
+    "lucide-react": "^1.33.0",
+    "next": "14.2.15",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-phone-number-input": "^3.4.17"
+  },
+  "devDependencies": {
+    "@types/node": "^20.16.10",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "14.2.15",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.13",
+    "typescript": "^5.6.2"
+  }
+}

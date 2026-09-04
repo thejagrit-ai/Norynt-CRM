@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build output
+dist/
+build/
+**/dist/
+.next/
+.next-check/
+out/
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+*.pem
+
+# Prisma
+**/prisma/*.db
+**/prisma/migrations/dev.db*
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Coverage / test
+coverage/
+.nyc_output/
+*.lcov
+
+# Editor / OS
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+
+# Misc
+*.tsbuildinfo
+.cache/
+tmp/
+
+# GitHub'da yalnız İngilizce: Türkçe docs + CLAUDE.md + Türkçe README lokalde kalır
+docs/
+/CLAUDE.md
+/README.tr.md

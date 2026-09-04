@@ -1,0 +1,826 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-main: #020617;
+    --surface-card: #ffffff;
+    --border-subtle: rgba(226, 232, 240, 0.8);
+    --brand-primary: #4f46e5;
+    color-scheme: dark;
+  }
+
+  html,
+  body {
+    height: 100%;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: #020617;
+    color: #f8fafc;
+  }
+
+  ::selection {
+    background-color: rgba(99, 102, 241, 0.3);
+    color: #e0e7ff;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* ============================================================
+   LIGHT MODE
+   ------------------------------------------------------------
+   The UI is authored dark-first (hard-coded slate-* utilities),
+   so light mode is a translation layer keyed on `html.light`.
+
+   RULES FOR EDITING THIS BLOCK:
+   1. Never use substring matchers like [class*="bg-slate-800/"].
+      They match the raw class attribute, so `hover:bg-slate-800/60`
+      matches too and paints a PERMANENT background on every element
+      that merely has a hover style. Always target the escaped
+      utility class exactly.
+   2. Never blanket-override `.bg-gradient-to-*`. Those classes are
+      shared by brand buttons, avatars and card highlights. Override
+      the gradient colour stops instead (`.from-slate-900`, ...).
+   3. Text on a saturated background must stay white — see the
+      "text on saturated surfaces" block.
+
+   Light palette
+     page   #f4f6fa   card #ffffff   inset #f8fafc   chip #f1f5f9
+     border #e2e8f0   strong #cbd5e1
+     ink    #0f172a  #1e293b  #475569  #64748b  #94a3b8
+   ============================================================ */
+
+html.light {
+  color-scheme: light;
+  --bg-main: #f4f6fa;
+  --surface-card: #ffffff;
+  --border-subtle: #e2e8f0;
+}
+
+html.light body {
+  background-color: #f4f6fa;
+  color: #0f172a;
+}
+
+html.light ::selection {
+  background-color: rgba(99, 102, 241, 0.18);
+  color: #1e1b4b;
+}
+
+/* ------------------------------------------------------------
+   Surfaces — slate-950/900 read as "card", slate-800 as "chip"
+   ------------------------------------------------------------ */
+html.light .bg-slate-950,
+html.light .bg-slate-950\/95,
+html.light .bg-slate-950\/90,
+html.light .bg-slate-950\/80,
+html.light .bg-slate-950\/75,
+html.light .bg-slate-950\/70,
+html.light .bg-slate-950\/60,
+html.light .bg-slate-900,
+html.light .bg-slate-900\/95,
+html.light .bg-slate-900\/90,
+html.light .bg-slate-900\/80,
+html.light .bg-slate-900\/70,
+html.light .bg-slate-900\/60 {
+  background-color: #ffffff !important;
+}
+
+/* Recessed surfaces: inset rows, wells, muted panels */
+html.light .bg-slate-950\/50,
+html.light .bg-slate-950\/40,
+html.light .bg-slate-900\/50,
+html.light .bg-slate-900\/40,
+html.light .bg-slate-900\/30,
+html.light .bg-slate-900\/20 {
+  background-color: #f8fafc !important;
+}
+
+/* Chips, icon wells, segmented controls */
+html.light .bg-slate-800,
+html.light .bg-slate-800\/90,
+html.light .bg-slate-800\/80,
+html.light .bg-slate-800\/60,
+html.light .bg-slate-800\/40 {
+  background-color: #f1f5f9 !important;
+}
+
+/* Full-screen scrims stay dark — they sit ABOVE the page.
+   Deliberately higher specificity than the surface rules above. */
+html.light .fixed.inset-0.bg-slate-950\/95,
+html.light .fixed.inset-0.bg-slate-950\/90,
+html.light .fixed.inset-0.bg-slate-950\/80,
+html.light .fixed.inset-0.bg-slate-950\/75,
+html.light .fixed.inset-0.bg-slate-950\/60 {
+  background-color: rgba(15, 23, 42, 0.45) !important;
+}
+
+/* ------------------------------------------------------------
+   Hover surfaces
+   ------------------------------------------------------------ */
+html.light .hover\:bg-slate-800:hover,
+html.light .hover\:bg-slate-800\/70:hover,
+html.light .hover\:bg-slate-800\/60:hover,
+html.light .hover\:bg-slate-800\/50:hover,
+html.light .hover\:bg-slate-800\/40:hover,
+html.light .hover\:bg-slate-800\/30:hover,
+html.light .hover\:bg-slate-900:hover,
+html.light .hover\:bg-slate-900\/80:hover,
+html.light .hover\:bg-slate-900\/60:hover {
+  background-color: #f1f5f9 !important;
+}
+
+html.light .hover\:bg-slate-700:hover,
+html.light .hover\:bg-slate-700\/90:hover {
+  background-color: #e2e8f0 !important;
+}
+
+/* ------------------------------------------------------------
+   Borders & dividers
+   ------------------------------------------------------------ */
+html.light .border-slate-800,
+html.light .border-slate-800\/90,
+html.light .border-slate-800\/80 {
+  border-color: #e2e8f0 !important;
+}
+html.light .border-slate-800\/70,
+html.light .border-slate-800\/60,
+html.light .border-slate-800\/40 {
+  border-color: #eaeff5 !important;
+}
+html.light .border-slate-700,
+html.light .border-slate-700\/80 {
+  border-color: #cbd5e1 !important;
+}
+html.light .border-slate-700\/60 {
+  border-color: #dbe3ec !important;
+}
+html.light .border-slate-600 {
+  border-color: #94a3b8 !important;
+}
+html.light .border-white\/10,
+html.light .border-white\/20 {
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+html.light .ring-white\/10 {
+  --tw-ring-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+html.light .divide-slate-800 > :not([hidden]) ~ :not([hidden]),
+html.light .divide-slate-800\/80 > :not([hidden]) ~ :not([hidden]),
+html.light .divide-slate-800\/60 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #eaeff5 !important;
+}
+
+html.light .hover\:border-slate-700:hover {
+  border-color: #cbd5e1 !important;
+}
+html.light .hover\:border-slate-600:hover {
+  border-color: #94a3b8 !important;
+}
+html.light .hover\:border-white\/30:hover {
+  border-color: rgba(15, 23, 42, 0.14) !important;
+}
+
+/* ------------------------------------------------------------
+   Text — the dark ramp inverts: slate-100 is the strongest ink,
+   slate-600 the faintest.
+   ------------------------------------------------------------ */
+html.light .text-white,
+html.light .text-slate-100 { color: #0f172a !important; }
+html.light .text-slate-200 { color: #1e293b !important; }
+html.light .text-slate-300,
+html.light .text-slate-300\/90 { color: #475569 !important; }
+html.light .text-slate-400 { color: #64748b !important; }
+html.light .text-slate-500 { color: #7c8899 !important; }
+html.light .text-slate-600 { color: #94a3b8 !important; }
+
+html.light .hover\:text-white:hover,
+html.light .hover\:text-slate-100:hover,
+html.light .group:hover .group-hover\:text-white,
+html.light .group:hover .group-hover\:text-slate-100 { color: #0f172a !important; }
+html.light .hover\:text-slate-200:hover,
+html.light .group:hover .group-hover\:text-slate-200 { color: #1e293b !important; }
+html.light .hover\:text-slate-300:hover,
+html.light .group:hover .group-hover\:text-slate-300 { color: #475569 !important; }
+html.light .group:hover .group-hover\:text-slate-400 { color: #64748b !important; }
+
+html.light .placeholder-slate-500::placeholder,
+html.light .placeholder-slate-400::placeholder { color: #94a3b8 !important; }
+
+/* Accent text: the 200–400 steps are tuned for dark backgrounds and
+   wash out on white. Step them down to the 500–700 range. */
+html.light .text-brand-400,
+html.light .text-indigo-400 { color: #4f46e5 !important; }
+html.light .text-brand-300,
+html.light .text-brand-200,
+html.light .hover\:text-brand-300:hover,
+html.light .hover\:text-brand-200:hover,
+html.light .group:hover .group-hover\:text-brand-300 { color: #4338ca !important; }
+html.light .hover\:text-brand-400:hover { color: #4f46e5 !important; }
+html.light .text-emerald-400 { color: #059669 !important; }
+html.light .text-emerald-300,
+html.light .text-emerald-200 { color: #047857 !important; }
+html.light .text-sky-400 { color: #0284c7 !important; }
+html.light .text-sky-300 { color: #0369a1 !important; }
+html.light .text-amber-400 { color: #d97706 !important; }
+html.light .text-amber-300,
+html.light .text-amber-200 { color: #b45309 !important; }
+html.light .text-rose-400,
+html.light .hover\:text-rose-400:hover { color: #e11d48 !important; }
+html.light .text-rose-300 { color: #be123c !important; }
+html.light .text-purple-400 { color: #7e22ce !important; }
+html.light .text-purple-300 { color: #6b21a8 !important; }
+
+/* ------------------------------------------------------------
+   Text on saturated surfaces stays white.
+   Must out-specify the `.text-white` rule above.
+   ------------------------------------------------------------ */
+html.light .text-white.bg-brand-600,
+html.light .text-white.bg-brand-500,
+html.light .text-white.bg-rose-600,
+html.light .text-white.bg-red-600,
+html.light .text-white.bg-emerald-600,
+html.light .text-white.bg-gradient-to-r,
+html.light .text-white.bg-gradient-to-br,
+html.light .text-white.bg-gradient-to-tr,
+html.light .text-white.bg-gradient-to-b {
+  color: #ffffff !important;
+}
+html.light .hover\:text-white.hover\:bg-brand-600:hover,
+html.light .hover\:text-white.hover\:bg-brand-500:hover {
+  color: #ffffff !important;
+}
+
+/* ------------------------------------------------------------
+   Gradients — only the slate-based "panel" gradients flip.
+   Brand / rose gradients (buttons, avatars) are left untouched.
+   ------------------------------------------------------------ */
+html.light .from-slate-900 {
+  background-image: linear-gradient(135deg, #ffffff 0%, #fafbff 55%, #eef2ff 100%) !important;
+}
+/* Hero/banner panels sit directly on the page, so they carry a tint —
+   this is what lets the white pills and buttons inside them read. */
+html.light .bg-gradient-to-r.from-slate-900 {
+  background-image: linear-gradient(105deg, #eef2ff 0%, #f7f9ff 50%, #e9eefe 100%) !important;
+}
+
+/* ------------------------------------------------------------
+   Tinted accent wells (KPI icons, badges, status pills)
+   ------------------------------------------------------------ */
+html.light .bg-brand-500\/10,
+html.light .bg-indigo-500\/10 { background-color: rgba(99, 102, 241, 0.10) !important; }
+html.light .bg-emerald-500\/10 { background-color: rgba(16, 185, 129, 0.11) !important; }
+html.light .bg-sky-500\/10 { background-color: rgba(14, 165, 233, 0.11) !important; }
+html.light .bg-amber-500\/10 { background-color: rgba(245, 158, 11, 0.13) !important; }
+html.light .bg-rose-500\/10 { background-color: rgba(244, 63, 94, 0.10) !important; }
+html.light .bg-purple-500\/10 { background-color: rgba(168, 85, 247, 0.10) !important; }
+html.light .bg-slate-500\/10 { background-color: rgba(100, 116, 139, 0.10) !important; }
+html.light .bg-brand-500\/20 { background-color: rgba(99, 102, 241, 0.14) !important; }
+html.light .bg-brand-600\/20 { background-color: rgba(99, 102, 241, 0.12) !important; }
+html.light .bg-brand-600\/15 { background-color: rgba(99, 102, 241, 0.10) !important; }
+
+html.light .border-brand-500\/20,
+html.light .border-brand-500\/30 { border-color: rgba(79, 70, 229, 0.30) !important; }
+html.light .border-emerald-500\/20 { border-color: rgba(5, 150, 105, 0.28) !important; }
+html.light .border-sky-500\/20 { border-color: rgba(2, 132, 199, 0.28) !important; }
+html.light .border-amber-500\/20 { border-color: rgba(217, 119, 6, 0.25) !important; }
+html.light .border-rose-500\/20 { border-color: rgba(225, 29, 72, 0.28) !important; }
+html.light .hover\:border-brand-500\/40:hover { border-color: rgba(79, 70, 229, 0.35) !important; }
+html.light .hover\:border-emerald-500\/40:hover { border-color: rgba(5, 150, 105, 0.35) !important; }
+html.light .hover\:border-sky-500\/40:hover { border-color: rgba(2, 132, 199, 0.35) !important; }
+html.light .hover\:border-amber-500\/40:hover { border-color: rgba(217, 119, 6, 0.35) !important; }
+
+/* ------------------------------------------------------------
+   Form controls
+   ------------------------------------------------------------ */
+html.light input:not([type='checkbox']):not([type='radio']),
+html.light select,
+html.light textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+html.light input::placeholder,
+html.light textarea::placeholder { color: #94a3b8 !important; }
+html.light select option { background-color: #ffffff !important; color: #0f172a !important; }
+html.light kbd {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #64748b !important;
+}
+html.light .focus\:ring-offset-slate-900:focus,
+html.light .focus\:ring-offset-slate-950:focus {
+  --tw-ring-offset-color: #ffffff !important;
+}
+
+/* ------------------------------------------------------------
+   Sidebar — white panel, legible section labels, brand active state
+   ------------------------------------------------------------ */
+/* Compounded with .bg-slate-950 so this out-specifies the generic surface
+   and border rules above — otherwise the panel edge falls back to the
+   fainter #eaeff5 and the sidebar stops reading as a separate surface. */
+html.light aside,
+html.light aside.bg-slate-950 {
+  background-color: #ffffff !important;
+  border-right-color: #e2e8f0 !important;
+}
+html.light aside .border-slate-800\/60 { border-color: #eaeff5 !important; }
+
+/* Section labels and their leading icon */
+html.light aside .text-slate-600 { color: #64748b !important; }
+
+/* Nav item — resting */
+html.light aside .text-slate-400 { color: #475569 !important; }
+html.light aside .text-slate-500 { color: #94a3b8 !important; }
+html.light aside .text-slate-200 { color: #1e293b !important; }
+
+/* Nav item — hover */
+html.light aside .hover\:bg-slate-800\/60:hover,
+html.light aside .hover\:bg-slate-800\/50:hover,
+html.light aside .hover\:bg-slate-800:hover,
+html.light aside .hover\:bg-slate-700:hover { background-color: #f1f5f9 !important; }
+html.light aside .hover\:text-slate-100:hover { color: #0f172a !important; }
+html.light aside .group:hover .group-hover\:text-slate-300 { color: #475569 !important; }
+
+/* Nav item — active */
+html.light aside .bg-brand-600\/15 {
+  background-color: #eef2ff !important;
+  color: #4338ca !important;
+}
+html.light aside .text-brand-400 { color: #4f46e5 !important; }
+html.light aside .bg-brand-400 { background-color: #4f46e5 !important; }
+html.light aside .bg-brand-500\/20 { background-color: rgba(99, 102, 241, 0.14) !important; }
+html.light aside .text-brand-300 { color: #4338ca !important; }
+
+/* Footer / sign-out */
+html.light aside .hover\:text-rose-400:hover { color: #e11d48 !important; }
+
+/* ------------------------------------------------------------
+   Topbar
+   ------------------------------------------------------------ */
+/* Same reason as the sidebar: plain `header` loses to `.bg-slate-950\/80`,
+   which would make the bar fully opaque and kill the backdrop blur. */
+html.light header,
+html.light header.bg-slate-950\/80 {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  border-bottom-color: #e2e8f0 !important;
+}
+html.light header .bg-slate-900,
+html.light header .bg-slate-900\/80 { background-color: #f8fafc !important; }
+html.light header .text-slate-400 { color: #64748b !important; }
+html.light header .text-slate-300 { color: #475569 !important; }
+
+/* ------------------------------------------------------------
+   Shadows — the dark theme's heavy shadows read as smudges on white
+   ------------------------------------------------------------ */
+html.light .shadow-card {
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.04), 0 4px 12px -4px rgba(15, 23, 42, 0.06) !important;
+}
+html.light .shadow-card-hover,
+html.light .hover\:shadow-card-hover:hover {
+  box-shadow: 0 10px 24px -6px rgba(15, 23, 42, 0.10), 0 0 0 1px rgba(79, 70, 229, 0.14) !important;
+}
+html.light .shadow-glass-dark {
+  box-shadow: 0 8px 28px -6px rgba(15, 23, 42, 0.08), inset 0 1px 0 0 rgba(255, 255, 255, 0.9) !important;
+}
+html.light .shadow-inner-soft {
+  box-shadow: inset 0 1px 2px 0 rgba(15, 23, 42, 0.04) !important;
+}
+html.light .shadow-modal {
+  box-shadow: 0 24px 48px -12px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(15, 23, 42, 0.06) !important;
+}
+html.light .shadow-2xl {
+  box-shadow: 0 12px 32px -12px rgba(15, 23, 42, 0.12) !important;
+}
+
+/* ------------------------------------------------------------
+   Charts — SVG colours are inline attributes, matched exactly
+   ------------------------------------------------------------ */
+html.light svg line[stroke='rgba(255,255,255,0.05)'] { stroke: rgba(15, 23, 42, 0.07) !important; }
+html.light svg line[stroke='rgba(255,255,255,0.1)'] { stroke: rgba(15, 23, 42, 0.14) !important; }
+html.light svg circle[stroke='rgba(255, 255, 255, 0.06)'] { stroke: rgba(15, 23, 42, 0.08) !important; }
+
+/* The KPI strip draws its dividers as 1px grid gaps that expose the parent
+   background. The generic chip mapping (#f1f5f9) is too faint to read as a
+   rule against white cells, so target that element specifically. */
+html.light .bg-slate-800\/80.gap-px {
+  background-color: #e2e8f0 !important;
+}
+
+/* Text gradients: the dark-mode stops are near-white / pastel and
+   disappear against a light page. */
+html.light .text-gradient {
+  background: linear-gradient(135deg, #0f172a 0%, #475569 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+html.light .text-gradient-brand {
+  background: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+html.light .text-gradient-emerald {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ------------------------------------------------------------
+   Full-page shells that opt out of the utility palette
+   ------------------------------------------------------------ */
+
+/* Login shell sets `bg-slate-950 mesh-gradient-bg`. Both rules land on
+   background-color with equal specificity, so name them together to keep
+   the page on the mesh tone instead of flat white. */
+html.light .bg-slate-950.mesh-gradient-bg {
+  background-color: #f4f6fa !important;
+}
+
+/* LoadingScreen uses an arbitrary-value class, so no palette rule reaches it. */
+html.light .bg-\[\#020617\] {
+  background-color: #f4f6fa !important;
+}
+html.light .norynt-loader__aurora { opacity: 0.14; }
+html.light .norynt-loader__grid { opacity: 0.07; }
+html.light .norynt-loader__progress { background: rgba(100, 116, 139, 0.16); }
+
+/* Scrollbars */
+html.light ::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.28); }
+html.light ::-webkit-scrollbar-thumb:hover { background: rgba(100, 116, 139, 0.45); }
+
+/* ============================================================
+   UTILITY CLASSES
+   ============================================================ */
+@layer utilities {
+  .glass {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+  html.light .glass {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(226, 232, 240, 0.8);
+  }
+
+  .glass-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.75) 100%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
+  }
+
+  .dark-glass {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(2, 6, 23, 0.92) 100%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+  }
+  html.light .dark-glass {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
+    border-color: rgba(226, 232, 240, 0.8);
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
+  }
+
+  .glass-header {
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  html.light .glass-header {
+    background: rgba(255, 255, 255, 0.85);
+    border-bottom-color: #e2e8f0;
+  }
+
+  .mesh-gradient-bg {
+    background-color: #090d16;
+    background-image:
+      radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.15) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.12) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
+  }
+  html.light .mesh-gradient-bg {
+    background-color: #f4f6fa;
+    background-image:
+      radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.06) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.04) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(16, 185, 129, 0.03) 0px, transparent 50%);
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .text-gradient-brand {
+    background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .text-gradient-emerald {
+    background: linear-gradient(135deg, #34d399 0%, #059669 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .focus-ring {
+    @apply outline-none ring-2 ring-brand-500/50 ring-offset-2 ring-offset-slate-900 transition;
+  }
+  html.light .focus-ring {
+    --tw-ring-offset-color: #ffffff;
+  }
+}
+
+/* --- Scrollbars --- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
+}
+
+/* --- Reduced motion --- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================
+   NORENT LOADER (preserved)
+   ============================================================ */
+.norynt-loader__aurora {
+  position: absolute;
+  width: 38rem;
+  height: 38rem;
+  border-radius: 9999px;
+  filter: blur(96px);
+  opacity: 0.28;
+}
+.norynt-loader__aurora--left {
+  top: -18rem;
+  left: -14rem;
+  background: #2563eb;
+}
+.norynt-loader__aurora--right {
+  right: -16rem;
+  bottom: -20rem;
+  background: #7c3aed;
+}
+.norynt-loader__grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.16;
+  background-image: linear-gradient(rgba(129, 140, 248, 0.16) 1px, transparent 1px), linear-gradient(90deg, rgba(129, 140, 248, 0.16) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(circle at center, black, transparent 72%);
+}
+.norynt-loader__scene {
+  position: relative;
+  width: 10.5rem;
+  height: 10.5rem;
+  perspective: 900px;
+}
+.norynt-loader__core {
+  position: absolute;
+  inset: 2.45rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(165, 180, 252, 0.5);
+  border-radius: 1.6rem;
+  background: linear-gradient(145deg, rgba(30, 41, 59, 0.96), rgba(15, 23, 42, 0.76));
+  box-shadow: 0 18px 34px rgba(2, 6, 23, 0.74), inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 0 42px rgba(99, 102, 241, 0.35);
+  transform: rotateX(56deg) rotateZ(-28deg);
+  animation: norynt-loader-core 3.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+.norynt-loader__core img {
+  transform: rotateZ(28deg) rotateX(-56deg) scale(1.2);
+}
+.norynt-loader__ring {
+  position: absolute;
+  border: 1px solid rgba(129, 140, 248, 0.55);
+  border-radius: 9999px;
+  transform-style: preserve-3d;
+}
+.norynt-loader__ring--outer {
+  inset: 0.6rem;
+  border-top-color: rgba(34, 211, 238, 0.9);
+  border-right-color: rgba(167, 139, 250, 0.9);
+  box-shadow: 0 0 22px rgba(99, 102, 241, 0.22);
+  transform: rotateX(67deg);
+  animation: norynt-loader-orbit 2.7s linear infinite;
+}
+.norynt-loader__ring--inner {
+  inset: 1.75rem;
+  border-bottom-color: rgba(56, 189, 248, 0.95);
+  border-left-color: rgba(196, 181, 253, 0.9);
+  transform: rotateY(68deg) rotateX(20deg);
+  animation: norynt-loader-orbit-reverse 2.1s linear infinite;
+}
+.norynt-loader__shadow {
+  position: absolute;
+  right: 1.45rem;
+  bottom: 1.45rem;
+  left: 1.45rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  background: rgba(67, 56, 202, 0.48);
+  filter: blur(12px);
+  transform: rotateX(70deg);
+  animation: norynt-loader-shadow 3.6s ease-in-out infinite;
+}
+.norynt-loader__spark {
+  position: absolute;
+  width: 0.32rem;
+  height: 0.32rem;
+  border-radius: 9999px;
+  background: #e0e7ff;
+  box-shadow: 0 0 12px 3px rgba(129, 140, 248, 0.78);
+  animation: norynt-loader-spark 2.8s ease-in-out infinite;
+}
+.norynt-loader__spark--one { top: 1rem; right: 1.5rem; }
+.norynt-loader__spark--two { bottom: 1.2rem; left: 1.15rem; animation-delay: -0.9s; }
+.norynt-loader__spark--three { top: 3.25rem; left: 0.45rem; animation-delay: -1.7s; }
+.norynt-loader__progress {
+  width: 9rem;
+  height: 0.22rem;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: rgba(148, 163, 184, 0.16);
+}
+.norynt-loader__progress span {
+  display: block;
+  width: 46%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #22d3ee, #6366f1, #c084fc);
+  box-shadow: 0 0 16px rgba(129, 140, 248, 0.9);
+  animation: norynt-loader-progress 1.7s ease-in-out infinite;
+}
+
+@keyframes norynt-loader-orbit {
+  to { transform: rotateX(67deg) rotateZ(360deg); }
+}
+@keyframes norynt-loader-orbit-reverse {
+  to { transform: rotateY(68deg) rotateX(20deg) rotateZ(-360deg); }
+}
+@keyframes norynt-loader-core {
+  0%, 100% { transform: translateY(0) rotateX(56deg) rotateZ(-28deg); }
+  50% { transform: translateY(-0.55rem) rotateX(56deg) rotateZ(-12deg); }
+}
+@keyframes norynt-loader-shadow {
+  0%, 100% { opacity: 0.44; transform: scale(0.9) rotateX(70deg); }
+  50% { opacity: 0.8; transform: scale(1.1) rotateX(70deg); }
+}
+@keyframes norynt-loader-spark {
+  0%, 100% { opacity: 0.2; transform: scale(0.5); }
+  50% { opacity: 1; transform: scale(1.25); }
+}
+@keyframes norynt-loader-progress {
+  0% { transform: translateX(-120%); }
+  55%, 100% { transform: translateX(245%); }
+}
+
+/* ============================================================
+   NORENT BRAND (preserved)
+   ============================================================ */
+.norynt-brand {
+  isolation: isolate;
+}
+.norynt-brand__mark {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  border-radius: 0.7rem;
+  transform-style: preserve-3d;
+  animation: norynt-brand-float 4.8s ease-in-out infinite;
+}
+.norynt-brand__mark::before {
+  position: absolute;
+  z-index: -1;
+  inset: 15%;
+  border-radius: inherit;
+  background: radial-gradient(circle, rgba(129, 140, 248, 0.8), rgba(59, 130, 246, 0));
+  content: '';
+  filter: blur(8px);
+  animation: norynt-brand-halo 3.1s ease-in-out infinite;
+}
+.norynt-brand__mark img {
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 5px 9px rgba(59, 130, 246, 0.35));
+}
+.norynt-brand__glint {
+  position: absolute;
+  z-index: 2;
+  inset: 4%;
+  overflow: hidden;
+  border-radius: 0.6rem;
+  pointer-events: none;
+}
+.norynt-brand__glint::after {
+  position: absolute;
+  top: -25%;
+  bottom: -25%;
+  width: 28%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.78), transparent);
+  content: '';
+  filter: blur(2px);
+  transform: translateX(-320%) rotate(18deg);
+  animation: norynt-brand-glint 4.8s ease-in-out infinite;
+}
+.norynt-brand__copy {
+  animation: norynt-brand-copy-in 580ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.norynt-brand__name {
+  text-shadow: 0 0 18px rgba(165, 180, 252, 0.16);
+}
+.norynt-brand__subline {
+  animation: norynt-brand-subline 4.8s ease-in-out infinite;
+}
+
+@keyframes norynt-brand-float {
+  0%, 100% { transform: translateY(0) rotateZ(0); }
+  50% { transform: translateY(-2px) rotateZ(-2deg); }
+}
+@keyframes norynt-brand-halo {
+  0%, 100% { opacity: 0.35; transform: scale(0.84); }
+  50% { opacity: 0.84; transform: scale(1.16); }
+}
+@keyframes norynt-brand-glint {
+  0%, 62% { transform: translateX(-320%) rotate(18deg); }
+  82%, 100% { transform: translateX(520%) rotate(18deg); }
+}
+@keyframes norynt-brand-copy-in {
+  from { opacity: 0; transform: translateX(-5px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes norynt-brand-subline {
+  0%, 100% { opacity: 0.68; letter-spacing: 0.28em; }
+  50% { opacity: 1; letter-spacing: 0.36em; }
+}
+
+/* ── Sidebar utilities ── */
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.2) transparent;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
+}
+
+@keyframes slide-right {
+  from { transform: translateX(-100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+.animate-slide-right {
+  animation: slide-right 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
