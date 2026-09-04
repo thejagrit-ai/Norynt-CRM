@@ -43,12 +43,12 @@ export const envValidationSchema = Joi.object({
   INBOUND_WEBHOOK_SECRET: Joi.string().allow('').optional(),
 
   // --- v2.2: SMTP (MAIL_DRIVER=smtp ise) ---
-  SMTP_HOST: Joi.string().optional(),
-  SMTP_PORT: Joi.number().optional(),
+  SMTP_HOST: Joi.string().allow('').optional(),
+  SMTP_PORT: Joi.number().empty('').optional(),
   SMTP_SECURE: Joi.boolean().optional(),
   SMTP_USER: Joi.string().allow('').optional(),
   SMTP_PASS: Joi.string().allow('').optional(),
-  SMTP_FROM: Joi.string().optional(),
+  SMTP_FROM: Joi.string().allow('').optional(),
 
   // --- v2.6: AI (Claude) opsiyonel ---
   ANTHROPIC_API_KEY: Joi.string().allow('').optional(),
