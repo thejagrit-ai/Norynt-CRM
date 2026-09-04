@@ -210,7 +210,7 @@ export function RoleModal({
           <div className="max-h-72 space-y-4 overflow-y-auto rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 dark:border-slate-800/80 dark:bg-slate-950/60">
             {filteredGroups.length === 0 ? (
               <p className="py-6 text-center text-xs text-slate-400">
-                No permissions matching "{searchQuery}"
+                No permissions matching &quot;{searchQuery}&quot;
               </p>
             ) : (
               filteredGroups.map((g) => {
