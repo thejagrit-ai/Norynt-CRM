@@ -12,6 +12,7 @@ import {
   NotFoundException,
   Optional,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 import { AuthenticatedUser } from '../../common/decorators/current-user.decorator';
 import { ConnectionsService } from '../connections/connections.service';

@@ -34,6 +34,14 @@ async function bootstrap(): Promise<void> {
   // URI versiyonlama: /api/v1/...
   app.setGlobalPrefix('api');
   app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
+  app.getHttpAdapter().get('/', (_request, response) => {
+    (response as unknown as { end: (body: string) => void }).end(
+      JSON.stringify({
+        service: 'Norynt CRM API',
+        health: '/api/v1/health',
+      }),
+    );
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({
