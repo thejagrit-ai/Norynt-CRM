@@ -327,31 +327,47 @@ export class AiService {
     const apiKey = dto.apiKey?.trim();
 
     if (!apiKey) {
-      return { success: false, message: 'API key is required for verification.', latencyMs: 0 };
+      return {
+        success: false,
+        message: 'API key is required for verification.',
+        latencyMs: 0,
+      };
     }
 
     try {
       if (provider === 'groq') {
         const model = dto.model || 'llama-3.1-8b-instant';
-        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
+        const res = await fetch(
+          'https://api.groq.com/openai/v1/chat/completions',
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model,
+              messages: [{ role: 'user', content: 'ping' }],
+              max_tokens: 5,
+            }),
           },
-          body: JSON.stringify({
-            model,
-            messages: [{ role: 'user', content: 'ping' }],
-            max_tokens: 5,
-          }),
-        });
+        );
         const latency = Date.now() - startTime;
         if (!res.ok) {
           const errData: any = await res.json().catch(() => ({}));
-          const errMessage = errData?.error?.message || `Groq returned status ${res.status}`;
-          return { success: false, message: `Groq Error: ${errMessage}`, latencyMs: latency };
+          const errMessage =
+            errData?.error?.message || `Groq returned status ${res.status}`;
+          return {
+            success: false,
+            message: `Groq Error: ${errMessage}`,
+            latencyMs: latency,
+          };
         }
-        return { success: true, message: `Groq Cloud Verified: Connected to ${model} successfully.`, latencyMs: latency };
+        return {
+          success: true,
+          message: `Groq Cloud Verified: Connected to ${model} successfully.`,
+          latencyMs: latency,
+        };
       }
 
       if (provider === 'gemini') {
@@ -367,10 +383,20 @@ export class AiService {
         const latency = Date.now() - startTime;
         if (!res.ok) {
           const errData: any = await res.json().catch(() => ({}));
-          const errMessage = errData?.error?.message || `Google AI Studio returned status ${res.status}`;
-          return { success: false, message: `Google AI Studio Error: ${errMessage}`, latencyMs: latency };
+          const errMessage =
+            errData?.error?.message ||
+            `Google AI Studio returned status ${res.status}`;
+          return {
+            success: false,
+            message: `Google AI Studio Error: ${errMessage}`,
+            latencyMs: latency,
+          };
         }
-        return { success: true, message: `Google AI Studio Verified: Connected to ${model} successfully.`, latencyMs: latency };
+        return {
+          success: true,
+          message: `Google AI Studio Verified: Connected to ${model} successfully.`,
+          latencyMs: latency,
+        };
       }
 
       if (provider === 'openai') {
@@ -378,7 +404,7 @@ export class AiService {
         const res = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${apiKey}`,
+            Authorization: `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
@@ -390,10 +416,19 @@ export class AiService {
         const latency = Date.now() - startTime;
         if (!res.ok) {
           const errData: any = await res.json().catch(() => ({}));
-          const errMessage = errData?.error?.message || `OpenAI returned status ${res.status}`;
-          return { success: false, message: `OpenAI Error: ${errMessage}`, latencyMs: latency };
+          const errMessage =
+            errData?.error?.message || `OpenAI returned status ${res.status}`;
+          return {
+            success: false,
+            message: `OpenAI Error: ${errMessage}`,
+            latencyMs: latency,
+          };
         }
-        return { success: true, message: `OpenAI Verified: Connected to ${model} successfully.`, latencyMs: latency };
+        return {
+          success: true,
+          message: `OpenAI Verified: Connected to ${model} successfully.`,
+          latencyMs: latency,
+        };
       }
 
       if (provider === 'anthropic') {
@@ -414,15 +449,29 @@ export class AiService {
         const latency = Date.now() - startTime;
         if (!res.ok) {
           const errData: any = await res.json().catch(() => ({}));
-          const errMessage = errData?.error?.message || `Anthropic returned status ${res.status}`;
-          return { success: false, message: `Anthropic Error: ${errMessage}`, latencyMs: latency };
+          const errMessage =
+            errData?.error?.message ||
+            `Anthropic returned status ${res.status}`;
+          return {
+            success: false,
+            message: `Anthropic Error: ${errMessage}`,
+            latencyMs: latency,
+          };
         }
-        return { success: true, message: `Anthropic Claude Verified: Connected to ${model} successfully.`, latencyMs: latency };
+        return {
+          success: true,
+          message: `Anthropic Claude Verified: Connected to ${model} successfully.`,
+          latencyMs: latency,
+        };
       }
 
       // Custom Provider
       const latency = Date.now() - startTime;
-      return { success: true, message: `Custom Endpoint Configured successfully.`, latencyMs: latency || 45 };
+      return {
+        success: true,
+        message: `Custom Endpoint Configured successfully.`,
+        latencyMs: latency || 45,
+      };
     } catch (err: any) {
       return {
         success: false,
@@ -435,7 +484,10 @@ export class AiService {
   async fetchAvailableModels(dto: {
     provider: string;
     apiKey: string;
-  }): Promise<{ success: boolean; models: Array<{ id: string; name: string; description?: string }> }> {
+  }): Promise<{
+    success: boolean;
+    models: Array<{ id: string; name: string; description?: string }>;
+  }> {
     const provider = dto.provider?.toLowerCase() || 'groq';
     const apiKey = dto.apiKey?.trim();
 
@@ -448,7 +500,7 @@ export class AiService {
         const res = await fetch('https://api.groq.com/openai/v1/models', {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${apiKey}`,
+            Authorization: `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
           },
         });
@@ -456,7 +508,15 @@ export class AiService {
           const data: any = await res.json();
           if (Array.isArray(data?.data)) {
             const models = data.data
-              .filter((m: any) => !m.id.includes('whisper') && !m.id.includes('guard') || m.id.includes('llama') || m.id.includes('mixtral') || m.id.includes('gemma') || m.id.includes('deepseek') || m.id.includes('qwen'))
+              .filter(
+                (m: any) =>
+                  (!m.id.includes('whisper') && !m.id.includes('guard')) ||
+                  m.id.includes('llama') ||
+                  m.id.includes('mixtral') ||
+                  m.id.includes('gemma') ||
+                  m.id.includes('deepseek') ||
+                  m.id.includes('qwen'),
+              )
               .map((m: any) => ({
                 id: m.id,
                 name: m.id,
@@ -470,10 +530,27 @@ export class AiService {
         return {
           success: true,
           models: [
-            { id: 'llama-3.3-70b-versatile', name: 'LLaMA 3.3 70B (Versatile)', description: 'Best all-around model for complex reasoning and enterprise CRM tasks (128k ctx).' },
-            { id: 'llama-3.1-8b-instant', name: 'LLaMA 3.1 8B (Instant)', description: 'Ultra-low latency model for instant responses.' },
-            { id: 'mixtral-8x7b-32768', name: 'Mixtral 8x7B (32k)', description: 'High-speed MoE model for analytical summaries.' },
-            { id: 'gemma2-9b-it', name: 'Gemma 2 9B IT', description: 'Google Gemma instruction tuned high efficiency.' },
+            {
+              id: 'llama-3.3-70b-versatile',
+              name: 'LLaMA 3.3 70B (Versatile)',
+              description:
+                'Best all-around model for complex reasoning and enterprise CRM tasks (128k ctx).',
+            },
+            {
+              id: 'llama-3.1-8b-instant',
+              name: 'LLaMA 3.1 8B (Instant)',
+              description: 'Ultra-low latency model for instant responses.',
+            },
+            {
+              id: 'mixtral-8x7b-32768',
+              name: 'Mixtral 8x7B (32k)',
+              description: 'High-speed MoE model for analytical summaries.',
+            },
+            {
+              id: 'gemma2-9b-it',
+              name: 'Gemma 2 9B IT',
+              description: 'Google Gemma instruction tuned high efficiency.',
+            },
           ],
         };
       }
@@ -488,11 +565,15 @@ export class AiService {
           const data: any = await res.json();
           if (Array.isArray(data?.models)) {
             const models = data.models
-              .filter((m: any) => m.supportedGenerationMethods?.includes('generateContent'))
+              .filter((m: any) =>
+                m.supportedGenerationMethods?.includes('generateContent'),
+              )
               .map((m: any) => ({
                 id: m.name.replace(/^models\//, ''),
                 name: m.displayName || m.name.replace(/^models\//, ''),
-                description: m.description ? (m.description.slice(0, 80) + '...') : 'Google AI Studio Multimodal Model',
+                description: m.description
+                  ? m.description.slice(0, 80) + '...'
+                  : 'Google AI Studio Multimodal Model',
               }));
             if (models.length > 0) {
               return { success: true, models };
@@ -502,9 +583,23 @@ export class AiService {
         return {
           success: true,
           models: [
-            { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Fast)', description: 'High-speed multimodal intelligence with 1M token context.' },
-            { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro (Reasoning)', description: 'Complex reasoning, deep analytics, and strategic synthesis (2M ctx).' },
-            { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash (Next-Gen)', description: 'Next-generation ultra fast multimodal model.' },
+            {
+              id: 'gemini-1.5-flash',
+              name: 'Gemini 1.5 Flash (Fast)',
+              description:
+                'High-speed multimodal intelligence with 1M token context.',
+            },
+            {
+              id: 'gemini-1.5-pro',
+              name: 'Gemini 1.5 Pro (Reasoning)',
+              description:
+                'Complex reasoning, deep analytics, and strategic synthesis (2M ctx).',
+            },
+            {
+              id: 'gemini-2.0-flash',
+              name: 'Gemini 2.0 Flash (Next-Gen)',
+              description: 'Next-generation ultra fast multimodal model.',
+            },
           ],
         };
       }
@@ -513,7 +608,7 @@ export class AiService {
         const res = await fetch('https://api.openai.com/v1/models', {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${apiKey}`,
+            Authorization: `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
           },
         });
@@ -521,7 +616,13 @@ export class AiService {
           const data: any = await res.json();
           if (Array.isArray(data?.data)) {
             const chatModels = data.data
-              .filter((m: any) => m.id.startsWith('gpt-4') || m.id.startsWith('o1') || m.id.startsWith('o3') || m.id.startsWith('gpt-3.5'))
+              .filter(
+                (m: any) =>
+                  m.id.startsWith('gpt-4') ||
+                  m.id.startsWith('o1') ||
+                  m.id.startsWith('o3') ||
+                  m.id.startsWith('gpt-3.5'),
+              )
               .map((m: any) => ({
                 id: m.id,
                 name: m.id,
@@ -535,9 +636,23 @@ export class AiService {
         return {
           success: true,
           models: [
-            { id: 'gpt-4o', name: 'GPT-4o (Omni)', description: 'OpenAI flagship multimodal model.' },
-            { id: 'gpt-4o-mini', name: 'GPT-4o Mini (Affordable)', description: 'Fast, cost-efficient small model for everyday CRM actions.' },
-            { id: 'o3-mini', name: 'o3-mini (Reasoning)', description: 'Next-generation reasoning model for complex workflows.' },
+            {
+              id: 'gpt-4o',
+              name: 'GPT-4o (Omni)',
+              description: 'OpenAI flagship multimodal model.',
+            },
+            {
+              id: 'gpt-4o-mini',
+              name: 'GPT-4o Mini (Affordable)',
+              description:
+                'Fast, cost-efficient small model for everyday CRM actions.',
+            },
+            {
+              id: 'o3-mini',
+              name: 'o3-mini (Reasoning)',
+              description:
+                'Next-generation reasoning model for complex workflows.',
+            },
           ],
         };
       }
@@ -546,9 +661,24 @@ export class AiService {
         return {
           success: true,
           models: [
-            { id: 'claude-3-5-sonnet-20241022', name: 'Claude 3.5 Sonnet (Latest)', description: 'Industry-leading reasoning and code analysis (200k ctx).' },
-            { id: 'claude-3-5-haiku-20241022', name: 'Claude 3.5 Haiku (Fast)', description: 'Ultra-fast, responsive assistant for instant answers.' },
-            { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus', description: 'Deep analytical intelligence for complex problem-solving.' },
+            {
+              id: 'claude-3-5-sonnet-20241022',
+              name: 'Claude 3.5 Sonnet (Latest)',
+              description:
+                'Industry-leading reasoning and code analysis (200k ctx).',
+            },
+            {
+              id: 'claude-3-5-haiku-20241022',
+              name: 'Claude 3.5 Haiku (Fast)',
+              description:
+                'Ultra-fast, responsive assistant for instant answers.',
+            },
+            {
+              id: 'claude-3-opus-20240229',
+              name: 'Claude 3 Opus',
+              description:
+                'Deep analytical intelligence for complex problem-solving.',
+            },
           ],
         };
       }
@@ -556,8 +686,16 @@ export class AiService {
       return {
         success: true,
         models: [
-          { id: 'llama-3.1-70b', name: 'LLaMA 3.1 70B', description: 'Self-hosted open model.' },
-          { id: 'mistral-nemo', name: 'Mistral NeMo 12B', description: 'Enterprise compact model.' },
+          {
+            id: 'llama-3.1-70b',
+            name: 'LLaMA 3.1 70B',
+            description: 'Self-hosted open model.',
+          },
+          {
+            id: 'mistral-nemo',
+            name: 'Mistral NeMo 12B',
+            description: 'Enterprise compact model.',
+          },
         ],
       };
     } catch {
@@ -574,47 +712,49 @@ export class AiService {
       model?: string;
     },
     actor: AuthenticatedUser,
-  ): Promise<{ response: string; provider: string; model: string; timestamp: string }> {
+  ): Promise<{
+    response: string;
+    provider: string;
+    model: string;
+    timestamp: string;
+  }> {
     const tenantId = actor.tenantId ?? undefined;
     const queryText = dto.message.trim();
 
     // 1. GATHER LIVE DATABASE TELEMETRY FOR THIS SPECIFIC ACCOUNT / TENANT
-    const [
-      deals,
-      leads,
-      invoices,
-      tickets,
-      tasks,
-      contactsCount,
-    ] = await Promise.all([
-      this.prisma.deal.findMany({
-        where: { tenantId, deletedAt: null },
-        take: 15,
-        orderBy: { value: 'desc' },
-        include: { stage: true, owner: { select: { firstName: true, lastName: true, email: true } } },
-      }),
-      this.prisma.lead.findMany({
-        where: { tenantId },
-        take: 15,
-        orderBy: { createdAt: 'desc' },
-      }),
-      this.prisma.invoice.findMany({
-        where: { tenantId },
-        take: 15,
-        orderBy: { createdAt: 'desc' },
-      }),
-      this.prisma.ticket.findMany({
-        where: { tenantId },
-        take: 15,
-        orderBy: { createdAt: 'desc' },
-      }),
-      this.prisma.task.findMany({
-        where: { tenantId },
-        take: 15,
-        orderBy: { dueDate: 'asc' },
-      }),
-      this.prisma.contact.count({ where: { tenantId } }),
-    ]);
+    const [deals, leads, invoices, tickets, tasks, contactsCount] =
+      await Promise.all([
+        this.prisma.deal.findMany({
+          where: { tenantId, deletedAt: null },
+          take: 15,
+          orderBy: { value: 'desc' },
+          include: {
+            stage: true,
+            owner: { select: { firstName: true, lastName: true, email: true } },
+          },
+        }),
+        this.prisma.lead.findMany({
+          where: { tenantId },
+          take: 15,
+          orderBy: { createdAt: 'desc' },
+        }),
+        this.prisma.invoice.findMany({
+          where: { tenantId },
+          take: 15,
+          orderBy: { createdAt: 'desc' },
+        }),
+        this.prisma.ticket.findMany({
+          where: { tenantId },
+          take: 15,
+          orderBy: { createdAt: 'desc' },
+        }),
+        this.prisma.task.findMany({
+          where: { tenantId },
+          take: 15,
+          orderBy: { dueDate: 'asc' },
+        }),
+        this.prisma.contact.count({ where: { tenantId } }),
+      ]);
 
     // Financial calculations
     const totalPipelineValue = deals
@@ -627,15 +767,23 @@ export class AiService {
     const wonDealsCount = deals.filter((d) => d.status === 'WON').length;
     const lostDealsCount = deals.filter((d) => d.status === 'LOST').length;
 
-    const totalInvoiced = invoices.reduce((sum, i) => sum + Number(i.total || 0), 0);
+    const totalInvoiced = invoices.reduce(
+      (sum, i) => sum + Number(i.total || 0),
+      0,
+    );
     const totalPaid = invoices
       .filter((i) => i.status === 'PAID')
       .reduce((sum, i) => sum + Number(i.total || 0), 0);
     const outstandingInvoices = totalInvoiced - totalPaid;
 
     const openTickets = tickets.filter((t) => t.status === 'PENDING');
-    const urgentTickets = tickets.filter((t) => t.priority === 'URGENT' || t.priority === 'HIGH');
-    const overdueTasks = tasks.filter((t) => t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'DONE');
+    const urgentTickets = tickets.filter(
+      (t) => t.priority === 'URGENT' || t.priority === 'HIGH',
+    );
+    const overdueTasks = tasks.filter(
+      (t) =>
+        t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'DONE',
+    );
 
     // Build Live CRM Context Summary for LLM
     const accountContext = `
@@ -651,13 +799,28 @@ LIVE TELEMETRY FOR ACCOUNT (TENANT: ${actor.tenantId || 'Primary Organization'})
 • Customer Contacts: ${contactsCount} verified contacts.
 
 TOP 5 HIGH-IMPACT OPPORTUNITIES:
-${deals.slice(0, 5).map((d) => `- "${d.title}" (${d.company || 'N/A'}): ₹${Number(d.value || 0).toLocaleString('en-IN')} [Status: ${d.status}, Stage: ${d.stage?.name || 'Standard'}]`).join('\n')}
+${deals
+  .slice(0, 5)
+  .map(
+    (d) =>
+      `- "${d.title}" (${d.company || 'N/A'}): ₹${Number(d.value || 0).toLocaleString('en-IN')} [Status: ${d.status}, Stage: ${d.stage?.name || 'Standard'}]`,
+  )
+  .join('\n')}
 
 RECENT INVOICES & STATUS:
-${invoices.slice(0, 5).map((i) => `- Invoice #${i.number || i.id.slice(0, 8)}: ₹${Number(i.total || 0).toLocaleString('en-IN')} [Status: ${i.status}]`).join('\n')}
+${invoices
+  .slice(0, 5)
+  .map(
+    (i) =>
+      `- Invoice #${i.number || i.id.slice(0, 8)}: ₹${Number(i.total || 0).toLocaleString('en-IN')} [Status: ${i.status}]`,
+  )
+  .join('\n')}
 
 ACTIVE SUPPORT TICKETS:
-${openTickets.slice(0, 5).map((t) => `- [${t.priority}] "${t.subject}" (Status: ${t.status})`).join('\n')}
+${openTickets
+  .slice(0, 5)
+  .map((t) => `- [${t.priority}] "${t.subject}" (Status: ${t.status})`)
+  .join('\n')}
 ========================================
 `;
 
@@ -677,23 +840,29 @@ ${accountContext}`;
           const model = dto.model || 'llama-3.3-70b-versatile';
           const groqMessages = [
             { role: 'system', content: systemPrompt },
-            ...(dto.history || []).map((h) => ({ role: h.role, content: h.content })),
+            ...(dto.history || []).map((h) => ({
+              role: h.role,
+              content: h.content,
+            })),
             { role: 'user', content: queryText },
           ];
 
-          const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${apiKey}`,
-              'Content-Type': 'application/json',
+          const res = await fetch(
+            'https://api.groq.com/openai/v1/chat/completions',
+            {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${apiKey}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                model,
+                messages: groqMessages,
+                temperature: 0.3,
+                max_tokens: 1024,
+              }),
             },
-            body: JSON.stringify({
-              model,
-              messages: groqMessages,
-              temperature: 0.3,
-              max_tokens: 1024,
-            }),
-          });
+          );
 
           if (res.ok) {
             const data: any = await res.json();
@@ -749,23 +918,29 @@ ${accountContext}`;
           const model = dto.model || 'gpt-4o';
           const openaiMessages = [
             { role: 'system', content: systemPrompt },
-            ...(dto.history || []).map((h) => ({ role: h.role, content: h.content })),
+            ...(dto.history || []).map((h) => ({
+              role: h.role,
+              content: h.content,
+            })),
             { role: 'user', content: queryText },
           ];
 
-          const res = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${apiKey}`,
-              'Content-Type': 'application/json',
+          const res = await fetch(
+            'https://api.openai.com/v1/chat/completions',
+            {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${apiKey}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                model,
+                messages: openaiMessages,
+                temperature: 0.3,
+                max_tokens: 1024,
+              }),
             },
-            body: JSON.stringify({
-              model,
-              messages: openaiMessages,
-              temperature: 0.3,
-              max_tokens: 1024,
-            }),
-          });
+          );
 
           if (res.ok) {
             const data: any = await res.json();
@@ -781,7 +956,9 @@ ${accountContext}`;
           }
         }
       } catch (externalErr) {
-        this.logger.warn(`External LLM call failed, falling back to CRM Intelligence Engine: ${externalErr}`);
+        this.logger.warn(
+          `External LLM call failed, falling back to CRM Intelligence Engine: ${externalErr}`,
+        );
       }
     }
 
@@ -789,52 +966,109 @@ ${accountContext}`;
     const q = queryText.toLowerCase();
     let reply = '';
 
-    if (q.includes('deal') || q.includes('pipeline') || q.includes('opportunity') || q.includes('sales')) {
+    if (
+      q.includes('deal') ||
+      q.includes('pipeline') ||
+      q.includes('opportunity') ||
+      q.includes('sales')
+    ) {
       reply = `### 📊 Live Pipeline & Deal Telemetry for Your Account
 • **Total Active Pipeline Value:** ₹${totalPipelineValue.toLocaleString('en-IN')} across **${openDealsCount}** open opportunities.
 • **Closed Revenue (Won):** ₹${wonDealsValue.toLocaleString('en-IN')} (**${wonDealsCount}** closed won).
 • **Win Rate:** ${openDealsCount + wonDealsCount + lostDealsCount > 0 ? Math.round((wonDealsCount / (wonDealsCount + lostDealsCount || 1)) * 100) : 0}%.
 
 **Top High-Impact Opportunities:**
-${deals.slice(0, 4).map((d) => `• **${d.title}** (${d.company || 'Enterprise'}): ₹${Number(d.value || 0).toLocaleString('en-IN')} — *${d.status}* (${d.stage?.name || 'Stage'})`).join('\n')}
+${deals
+  .slice(0, 4)
+  .map(
+    (d) =>
+      `• **${d.title}** (${d.company || 'Enterprise'}): ₹${Number(d.value || 0).toLocaleString('en-IN')} — *${d.status}* (${d.stage?.name || 'Stage'})`,
+  )
+  .join('\n')}
 
 *Recommendation:* Prioritize closing the top 2 open deals to accelerate monthly quota achievement.`;
-    } else if (q.includes('invoice') || q.includes('revenue') || q.includes('billing') || q.includes('receivable') || q.includes('payment') || q.includes('gst')) {
+    } else if (
+      q.includes('invoice') ||
+      q.includes('revenue') ||
+      q.includes('billing') ||
+      q.includes('receivable') ||
+      q.includes('payment') ||
+      q.includes('gst')
+    ) {
       reply = `### 🧾 Real-Time Financial & Revenue Status
 • **Total Invoiced Volume:** ₹${totalInvoiced.toLocaleString('en-IN')}
 • **Total Paid & Realized:** ₹${totalPaid.toLocaleString('en-IN')}
 • **Outstanding Receivables:** ₹${outstandingInvoices.toLocaleString('en-IN')}
 
 **Recent Invoices:**
-${invoices.slice(0, 4).map((i) => `• **Invoice #${i.number || i.id.slice(0, 8)}**: ₹${Number(i.total || 0).toLocaleString('en-IN')} — **${i.status}**`).join('\n')}
+${invoices
+  .slice(0, 4)
+  .map(
+    (i) =>
+      `• **Invoice #${i.number || i.id.slice(0, 8)}**: ₹${Number(i.total || 0).toLocaleString('en-IN')} — **${i.status}**`,
+  )
+  .join('\n')}
 
 *Compliance:* All generated invoices adhere to Indian GST guidelines with HSN/SAC automated tax slabs.`;
-    } else if (q.includes('lead') || q.includes('prospect') || q.includes('contact')) {
+    } else if (
+      q.includes('lead') ||
+      q.includes('prospect') ||
+      q.includes('contact')
+    ) {
       reply = `### 👥 Customer Leads & Prospecting Overview
 • **Total Leads in System:** **${leads.length}**
 • **New Uncontacted Leads:** **${leads.filter((l) => l.status === 'NEW').length}**
 • **Verified Contacts:** **${contactsCount}**
 
 **Recent Prospects:**
-${leads.slice(0, 4).map((l) => `• **${l.firstName} ${l.lastName}**: Status **${l.status}** · Source: *${l.source || 'Direct'}*`).join('\n')}
+${leads
+  .slice(0, 4)
+  .map(
+    (l) =>
+      `• **${l.firstName} ${l.lastName}**: Status **${l.status}** · Source: *${l.source || 'Direct'}*`,
+  )
+  .join('\n')}
 
 *Action:* Initiate follow-ups with all **NEW** status leads within 24 hours to maximize conversion rate.`;
-    } else if (q.includes('ticket') || q.includes('support') || q.includes('issue') || q.includes('sla')) {
+    } else if (
+      q.includes('ticket') ||
+      q.includes('support') ||
+      q.includes('issue') ||
+      q.includes('sla')
+    ) {
       reply = `### 🎫 Customer Support Queue & SLA Health
 • **Open Support Tickets:** **${openTickets.length}**
 • **Critical / High Priority Tickets:** **${urgentTickets.length}**
 
 **Urgent Items:**
-${openTickets.slice(0, 4).map((t) => `• **[${t.priority}] ${t.subject}** · Status: *${t.status}*`).join('\n') || '• No urgent support tickets pending!'}
+${
+  openTickets
+    .slice(0, 4)
+    .map((t) => `• **[${t.priority}] ${t.subject}** · Status: *${t.status}*`)
+    .join('\n') || '• No urgent support tickets pending!'
+}
 
 *Health Status:* All active support queries are monitored under standard SLA response targets.`;
-    } else if (q.includes('task') || q.includes('todo') || q.includes('priority') || q.includes('overdue')) {
+    } else if (
+      q.includes('task') ||
+      q.includes('todo') ||
+      q.includes('priority') ||
+      q.includes('overdue')
+    ) {
       reply = `### ✅ Actionable Tasks & Team Priorities
 • **Total CRM Tasks:** **${tasks.length}**
 • **Overdue Items:** **${overdueTasks.length}**
 
 **Next Scheduled Tasks:**
-${tasks.slice(0, 4).map((t) => `• **${t.title}** · Due: *${t.dueDate ? new Date(t.dueDate).toLocaleDateString() : 'Immediate'}* (${t.priority})`).join('\n') || '• No overdue tasks!'}
+${
+  tasks
+    .slice(0, 4)
+    .map(
+      (t) =>
+        `• **${t.title}** · Due: *${t.dueDate ? new Date(t.dueDate).toLocaleDateString() : 'Immediate'}* (${t.priority})`,
+    )
+    .join('\n') || '• No overdue tasks!'
+}
 
 *Focus:* Complete urgent items before end of day.`;
     } else {
@@ -908,7 +1142,9 @@ How would you like me to assist you further? You can ask me to analyze specific 
       this.logger.error(
         `AI call failed: ${err instanceof Error ? err.message : String(err)}`,
       );
-      throw new ServiceUnavailableException('AI service is currently unavailable.');
+      throw new ServiceUnavailableException(
+        'AI service is currently unavailable.',
+      );
     }
   }
 }

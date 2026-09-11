@@ -1,7 +1,10 @@
 // src/modules/custom-reports/custom-reports.service.ts
 import { Injectable } from '@nestjs/common';
 import { CustomReportsRepository } from './custom-reports.repository';
-import { CreateCustomReportDto, ExecuteReportDto } from './dto/custom-report.dto';
+import {
+  CreateCustomReportDto,
+  ExecuteReportDto,
+} from './dto/custom-report.dto';
 import { AuthenticatedUser } from '../../common/decorators/current-user.decorator';
 
 @Injectable()
@@ -40,7 +43,9 @@ export class CustomReportsService {
           chartType: 'DONUT',
         },
       ];
-      reports = await Promise.all(defaults.map((d) => this.repo.create(d, actor.id, actor.tenantId)));
+      reports = await Promise.all(
+        defaults.map((d) => this.repo.create(d, actor.id, actor.tenantId)),
+      );
     }
     return reports;
   }
@@ -57,7 +62,10 @@ export class CustomReportsService {
     const rawData = await this.repo.fetchEntityData(dto.entity, actor.tenantId);
     const groupKey = dto.groupBy || 'status';
 
-    const grouped: Record<string, { label: string; count: number; value: number }> = {};
+    const grouped: Record<
+      string,
+      { label: string; count: number; value: number }
+    > = {};
 
     rawData.forEach((item: any) => {
       const key = String(item[groupKey] || 'Unassigned');
@@ -65,9 +73,9 @@ export class CustomReportsService {
         grouped[key] = { label: key, count: 0, value: 0 };
       }
       grouped[key].count += 1;
-      if (item.value) {
+      if (item.value !== undefined && item.value !== null) {
         grouped[key].value += Number(item.value);
-      } else if (item.total) {
+      } else if (item.total !== undefined && item.total !== null) {
         grouped[key].value += Number(item.total);
       }
     });

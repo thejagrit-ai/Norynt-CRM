@@ -1,7 +1,11 @@
 // src/modules/masters/masters.repository.ts
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { CreateTaxSlabDto, CreateTncSetDto, CreateUomDto } from './dto/masters.dto';
+import {
+  CreateTaxSlabDto,
+  CreateTncSetDto,
+  CreateUomDto,
+} from './dto/masters.dto';
 
 @Injectable()
 export class MastersRepository {

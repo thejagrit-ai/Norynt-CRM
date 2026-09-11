@@ -1,6 +1,7 @@
 'use client';
 // app/(dashboard)/media/page.tsx — Media Library & Digital Asset Manager
 import React, { useState } from 'react';
+import NextImage from 'next/image';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   FolderOpen,
@@ -180,10 +181,12 @@ export default function MediaLibraryPage() {
                 {/* Visual Thumbnail */}
                 <div className="relative h-36 w-full bg-slate-950 flex items-center justify-center border-b border-slate-800/80 overflow-hidden">
                   {isImage ? (
-                    <img
+                    <NextImage
                       src={file.url}
                       alt={file.originalName}
-                      className="h-full w-full object-cover group-hover:scale-105 transition duration-300"
+                      fill
+                      sizes="(max-width: 768px) 100vw, 300px"
+                      className="object-cover group-hover:scale-105 transition duration-300"
                     />
                   ) : (
                     <div className="flex flex-col items-center gap-1.5 text-slate-500">

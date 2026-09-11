@@ -33,14 +33,17 @@ export class MediaService {
         {
           filename: 'standard_service_agreement_v2.docx',
           originalName: 'Service Agreement Template.docx',
-          mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          mimeType:
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
           size: 850000,
           url: 'https://assets.norynt.com/templates/agreement.docx',
           folder: 'templates',
           tags: ['legal', 'quotes'],
         },
       ];
-      list = await Promise.all(samples.map((s) => this.repo.create(s, actor.id, actor.tenantId)));
+      list = await Promise.all(
+        samples.map((s) => this.repo.create(s, actor.id, actor.tenantId)),
+      );
     }
     return list;
   }

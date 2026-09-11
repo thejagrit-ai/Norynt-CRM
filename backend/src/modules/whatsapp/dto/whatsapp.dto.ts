@@ -96,4 +96,3 @@ export class CreateQuickReplyDto {
   @IsOptional()
   category?: string;
 }
-

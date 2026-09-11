@@ -96,7 +96,9 @@ export class IntegrationsService {
       throw new BadRequestException('Inbound webhook is not configured.');
     }
     if (!params.signature || !params.timestamp) {
-      throw new UnauthorizedException('Webhook signature and timestamp are required.');
+      throw new UnauthorizedException(
+        'Webhook signature and timestamp are required.',
+      );
     }
     const ok = verifySignature({
       secret,

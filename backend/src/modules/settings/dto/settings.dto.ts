@@ -1,5 +1,11 @@
 // src/modules/settings/dto/settings.dto.ts
-import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class UpdateSubscriptionDto {
   @IsString()

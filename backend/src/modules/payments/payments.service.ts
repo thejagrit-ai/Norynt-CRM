@@ -12,8 +12,6 @@ import {
   NotFoundException,
   Optional,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { Prisma } from '@prisma/client';
 import * as crypto from 'crypto';
 import { AuthenticatedUser } from '../../common/decorators/current-user.decorator';
 import { ConnectionsService } from '../connections/connections.service';
@@ -188,7 +186,7 @@ export class PaymentsService {
     invoiceId: string,
     dto: InitiatePaymentDto,
     actor: AuthenticatedUser,
-    ip: string,
+    _ip: string,
   ) {
     const settings = await this.getPaymentSettings();
     const targetProvider =
@@ -323,8 +321,7 @@ export class PaymentsService {
 
     const creds = await this.connections.getCredentials(provider);
     const webhookSecret =
-      creds?.secrets.webhookSecret ||
-      (creds?.config.webhookSecret as string);
+      creds?.secrets.webhookSecret || (creds?.config.webhookSecret as string);
     if (webhookSecret && rawBody) {
       const signature = (headers['x-razorpay-signature'] ||
         headers['x-webhook-signature'] ||

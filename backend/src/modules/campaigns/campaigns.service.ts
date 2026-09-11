@@ -27,11 +27,16 @@ export class CampaignsService {
 
   async findEmail(id: string, actor: AuthenticatedUser) {
     const campaign = await this.repo.findEmailById(id, actor.tenantId);
-    if (!campaign) throw new NotFoundException(`Email campaign ${id} not found`);
+    if (!campaign)
+      throw new NotFoundException(`Email campaign ${id} not found`);
     return campaign;
   }
 
-  async updateEmail(id: string, dto: UpdateEmailCampaignDto, actor: AuthenticatedUser) {
+  async updateEmail(
+    id: string,
+    dto: UpdateEmailCampaignDto,
+    actor: AuthenticatedUser,
+  ) {
     await this.findEmail(id, actor);
     return this.repo.updateEmail(id, dto);
   }
@@ -72,7 +77,11 @@ export class CampaignsService {
     return this.repo.findAllTemplates(actor.tenantId);
   }
 
-  async updateTemplate(id: string, dto: UpdateTemplateDto, actor: AuthenticatedUser) {
+  async updateTemplate(
+    id: string,
+    dto: UpdateTemplateDto,
+    actor: AuthenticatedUser,
+  ) {
     return this.repo.updateTemplate(id, dto);
   }
 
@@ -85,7 +94,10 @@ export class CampaignsService {
     return this.repo.getWarmupProfiles(actor.tenantId);
   }
 
-  async createWarmupProfile(dto: CreateWarmupProfileDto, actor: AuthenticatedUser) {
+  async createWarmupProfile(
+    dto: CreateWarmupProfileDto,
+    actor: AuthenticatedUser,
+  ) {
     return this.repo.createWarmupProfile(dto, actor.tenantId);
   }
 

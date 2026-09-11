@@ -50,7 +50,9 @@ export class SecretCryptoService {
     const iv = raw.subarray(0, IV_LEN);
     const tag = raw.subarray(IV_LEN, IV_LEN + TAG_LEN);
     const enc = raw.subarray(IV_LEN + TAG_LEN);
-    const decipher = createDecipheriv(ALGO, this.key(), iv);
+    const decipher = createDecipheriv(ALGO, this.key(), iv, {
+      authTagLength: TAG_LEN,
+    });
     decipher.setAuthTag(tag);
     return Buffer.concat([decipher.update(enc), decipher.final()]).toString(
       'utf8',

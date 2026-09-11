@@ -240,7 +240,7 @@ export default function InvoicesPage() {
   });
 
   // Calculate Top Financial Metrics
-  const rawInvoices = invoicesQuery.data || [];
+  const rawInvoices = useMemo(() => invoicesQuery.data || [], [invoicesQuery.data]);
 
   const metrics = useMemo(() => {
     let totalInvoiced = 0;

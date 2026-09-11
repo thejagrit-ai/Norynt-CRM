@@ -38,7 +38,10 @@ export class SettingsRepository {
     return sub;
   }
 
-  async updateSubscription(dto: UpdateSubscriptionDto, tenantId?: string | null) {
+  async updateSubscription(
+    dto: UpdateSubscriptionDto,
+    tenantId?: string | null,
+  ) {
     const sub = await this.getSubscription(tenantId);
     let seatLimit = 10;
     let emailMonthlyLimit = 10000;
@@ -73,10 +76,30 @@ export class SettingsRepository {
     });
     if (policies.length === 0) {
       const defaults = [
-        { priority: 'URGENT', responseTimeHours: 1, resolutionTimeHours: 4, autoEscalate: true },
-        { priority: 'HIGH', responseTimeHours: 4, resolutionTimeHours: 12, autoEscalate: true },
-        { priority: 'MEDIUM', responseTimeHours: 24, resolutionTimeHours: 48, autoEscalate: false },
-        { priority: 'LOW', responseTimeHours: 48, resolutionTimeHours: 96, autoEscalate: false },
+        {
+          priority: 'URGENT',
+          responseTimeHours: 1,
+          resolutionTimeHours: 4,
+          autoEscalate: true,
+        },
+        {
+          priority: 'HIGH',
+          responseTimeHours: 4,
+          resolutionTimeHours: 12,
+          autoEscalate: true,
+        },
+        {
+          priority: 'MEDIUM',
+          responseTimeHours: 24,
+          resolutionTimeHours: 48,
+          autoEscalate: false,
+        },
+        {
+          priority: 'LOW',
+          responseTimeHours: 48,
+          resolutionTimeHours: 96,
+          autoEscalate: false,
+        },
       ];
       policies = await Promise.all(
         defaults.map((d) =>
@@ -119,15 +142,55 @@ export class SettingsRepository {
     if (list.length === 0) {
       const defaults = [
         // Loss Reasons
-        { category: 'LOSS_REASON', key: 'budget_constraints', label: 'Budget Constraints / Pricing', color: '#ef4444' },
-        { category: 'LOSS_REASON', key: 'competitor_chosen', label: 'Competitor Selected', color: '#f97316' },
-        { category: 'LOSS_REASON', key: 'unresponsive', label: 'No Response / Ghosted', color: '#64748b' },
-        { category: 'LOSS_REASON', key: 'missing_feature', label: 'Missing Required Feature', color: '#a855f7' },
-        { category: 'LOSS_REASON', key: 'timeline_postponed', label: 'Project Postponed', color: '#eab308' },
+        {
+          category: 'LOSS_REASON',
+          key: 'budget_constraints',
+          label: 'Budget Constraints / Pricing',
+          color: '#ef4444',
+        },
+        {
+          category: 'LOSS_REASON',
+          key: 'competitor_chosen',
+          label: 'Competitor Selected',
+          color: '#f97316',
+        },
+        {
+          category: 'LOSS_REASON',
+          key: 'unresponsive',
+          label: 'No Response / Ghosted',
+          color: '#64748b',
+        },
+        {
+          category: 'LOSS_REASON',
+          key: 'missing_feature',
+          label: 'Missing Required Feature',
+          color: '#a855f7',
+        },
+        {
+          category: 'LOSS_REASON',
+          key: 'timeline_postponed',
+          label: 'Project Postponed',
+          color: '#eab308',
+        },
         // Rating
-        { category: 'RATING', key: 'hot', label: '🔥 Hot (High Intent)', color: '#ef4444' },
-        { category: 'RATING', key: 'warm', label: '⚡ Warm (Evaluating)', color: '#f59e0b' },
-        { category: 'RATING', key: 'cold', label: '❄️ Cold (Nurture)', color: '#3b82f6' },
+        {
+          category: 'RATING',
+          key: 'hot',
+          label: '🔥 Hot (High Intent)',
+          color: '#ef4444',
+        },
+        {
+          category: 'RATING',
+          key: 'warm',
+          label: '⚡ Warm (Evaluating)',
+          color: '#f59e0b',
+        },
+        {
+          category: 'RATING',
+          key: 'cold',
+          label: '❄️ Cold (Nurture)',
+          color: '#3b82f6',
+        },
       ];
       list = await Promise.all(
         defaults.map((d) =>
@@ -183,7 +246,11 @@ export class SettingsRepository {
     return rules;
   }
 
-  async createAssignmentRule(dto: CreateAssignmentRuleDto, actorId: string, tenantId?: string | null) {
+  async createAssignmentRule(
+    dto: CreateAssignmentRuleDto,
+    actorId: string,
+    tenantId?: string | null,
+  ) {
     return this.prisma.assignmentRule.create({
       data: {
         type: dto.type,
@@ -216,7 +283,8 @@ export class SettingsRepository {
         data: {
           tenantId: tenantId ?? null,
           botName: 'Norynt Sales Assistant',
-          welcomeMessage: 'Hello! 👋 How can I help you explore our CRM solutions today?',
+          welcomeMessage:
+            'Hello! 👋 How can I help you explore our CRM solutions today?',
           promptInstructions:
             'You are an AI sales rep for Norynt CRM. Assist visitors by answering questions regarding our CRM pricing, features, integrations, and helping them book a live product demo.',
           primaryColor: '#4f46e5',
@@ -228,7 +296,10 @@ export class SettingsRepository {
     return cfg;
   }
 
-  async updateChatbotConfig(dto: UpdateChatbotConfigDto, tenantId?: string | null) {
+  async updateChatbotConfig(
+    dto: UpdateChatbotConfigDto,
+    tenantId?: string | null,
+  ) {
     const cfg = await this.getChatbotConfig(tenantId);
     return this.prisma.chatbotConfig.update({
       where: { id: cfg.id },

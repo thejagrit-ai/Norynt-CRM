@@ -50,7 +50,10 @@ export class AuthRepository {
     });
   }
 
-  updateUserProfile(id: string, data: { firstName?: string; lastName?: string }) {
+  updateUserProfile(
+    id: string,
+    data: { firstName?: string; lastName?: string },
+  ) {
     return this.prisma.user.update({
       where: { id },
       data,

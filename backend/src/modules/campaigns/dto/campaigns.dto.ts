@@ -1,5 +1,11 @@
 // src/modules/campaigns/dto/campaigns.dto.ts
-import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsDateString,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { CampaignStatus, TemplateChannel } from '@prisma/client';
 
 export class CreateEmailCampaignDto {
@@ -173,5 +179,10 @@ export class CreateFunnelDto {
   description?: string;
 
   @IsOptional()
-  stages?: Array<{ name: string; order: number; visitors?: number; conversions?: number }>;
+  stages?: Array<{
+    name: string;
+    order: number;
+    visitors?: number;
+    conversions?: number;
+  }>;
 }

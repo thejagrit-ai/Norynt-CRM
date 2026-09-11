@@ -7,7 +7,11 @@ import { CreateLeadGroupDto, UpdateLeadGroupDto } from './dto/lead-group.dto';
 export class LeadGroupsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreateLeadGroupDto, actorId: string, tenantId?: string | null) {
+  async create(
+    data: CreateLeadGroupDto,
+    actorId: string,
+    tenantId?: string | null,
+  ) {
     return this.prisma.leadGroup.create({
       data: {
         name: data.name,
@@ -56,7 +60,11 @@ export class LeadGroupsRepository {
     });
   }
 
-  async update(id: string, data: UpdateLeadGroupDto, tenantId?: string | null) {
+  async update(
+    id: string,
+    data: UpdateLeadGroupDto,
+    _tenantId?: string | null,
+  ) {
     return this.prisma.leadGroup.update({
       where: { id },
       data,
@@ -68,7 +76,7 @@ export class LeadGroupsRepository {
     });
   }
 
-  async delete(id: string, tenantId?: string | null) {
+  async delete(id: string, _tenantId?: string | null) {
     return this.prisma.leadGroup.delete({
       where: { id },
     });

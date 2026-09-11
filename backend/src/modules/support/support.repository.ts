@@ -45,7 +45,10 @@ export class SupportRepository {
   }
 
   // --- Knowledge Articles ---
-  async createArticle(data: CreateKnowledgeArticleDto, tenantId?: string | null) {
+  async createArticle(
+    data: CreateKnowledgeArticleDto,
+    tenantId?: string | null,
+  ) {
     return this.prisma.knowledgeArticle.create({
       data: {
         categoryId: data.categoryId,

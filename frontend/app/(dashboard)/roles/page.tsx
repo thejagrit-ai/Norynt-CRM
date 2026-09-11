@@ -45,7 +45,7 @@ export default function RolesPage() {
     qc.invalidateQueries({ queryKey: ['roles'] });
   };
 
-  const rawRoles = rolesQuery.data ?? [];
+  const rawRoles = useMemo(() => rolesQuery.data ?? [], [rolesQuery.data]);
 
   const filteredRoles = useMemo(() => {
     if (!searchQuery.trim()) return rawRoles;

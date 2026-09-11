@@ -19,7 +19,10 @@ import {
   AuthenticatedUser,
 } from '../../common/decorators/current-user.decorator';
 import { CustomReportsService } from './custom-reports.service';
-import { CreateCustomReportDto, ExecuteReportDto } from './dto/custom-report.dto';
+import {
+  CreateCustomReportDto,
+  ExecuteReportDto,
+} from './dto/custom-report.dto';
 
 @Controller('reports/custom')
 @UseGuards(JwtAuthGuard, RolesGuard)

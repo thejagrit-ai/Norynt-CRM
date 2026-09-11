@@ -17,7 +17,11 @@ export class CampaignsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   // --- Email Campaigns ---
-  async createEmail(data: CreateEmailCampaignDto, actorId: string, tenantId?: string | null) {
+  async createEmail(
+    data: CreateEmailCampaignDto,
+    actorId: string,
+    tenantId?: string | null,
+  ) {
     return this.prisma.emailCampaign.create({
       data: {
         name: data.name,
@@ -28,7 +32,9 @@ export class CampaignsRepository {
         templateId: data.templateId,
         segmentId: data.segmentId,
         content: data.content,
-        status: data.scheduledAt ? CampaignStatus.SCHEDULED : CampaignStatus.DRAFT,
+        status: data.scheduledAt
+          ? CampaignStatus.SCHEDULED
+          : CampaignStatus.DRAFT,
         scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : null,
         createdById: actorId,
         tenantId: tenantId ?? null,
@@ -55,7 +61,9 @@ export class CampaignsRepository {
       data: {
         ...(data.name !== undefined && { name: data.name }),
         ...(data.subject !== undefined && { subject: data.subject }),
-        ...(data.previewText !== undefined && { previewText: data.previewText }),
+        ...(data.previewText !== undefined && {
+          previewText: data.previewText,
+        }),
         ...(data.fromName !== undefined && { fromName: data.fromName }),
         ...(data.fromEmail !== undefined && { fromEmail: data.fromEmail }),
         ...(data.templateId !== undefined && { templateId: data.templateId }),
@@ -63,14 +71,18 @@ export class CampaignsRepository {
         ...(data.content !== undefined && { content: data.content }),
         ...(data.scheduledAt !== undefined && {
           scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : null,
-          status: data.scheduledAt ? CampaignStatus.SCHEDULED : CampaignStatus.DRAFT,
+          status: data.scheduledAt
+            ? CampaignStatus.SCHEDULED
+            : CampaignStatus.DRAFT,
         }),
       },
     });
   }
 
   async sendEmailCampaign(id: string) {
-    const campaign = await this.prisma.emailCampaign.findUnique({ where: { id } });
+    const campaign = await this.prisma.emailCampaign.findUnique({
+      where: { id },
+    });
     if (!campaign) throw new Error('Campaign not found');
 
     const leadCount = await this.prisma.lead.count({
@@ -96,14 +108,20 @@ export class CampaignsRepository {
   }
 
   // --- SMS Campaigns ---
-  async createSms(data: CreateSmsCampaignDto, actorId: string, tenantId?: string | null) {
+  async createSms(
+    data: CreateSmsCampaignDto,
+    actorId: string,
+    tenantId?: string | null,
+  ) {
     return this.prisma.smsCampaign.create({
       data: {
         name: data.name,
         senderId: data.senderId,
         message: data.message,
         segmentId: data.segmentId,
-        status: data.scheduledAt ? CampaignStatus.SCHEDULED : CampaignStatus.DRAFT,
+        status: data.scheduledAt
+          ? CampaignStatus.SCHEDULED
+          : CampaignStatus.DRAFT,
         scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : null,
         createdById: actorId,
         tenantId: tenantId ?? null,
@@ -119,7 +137,9 @@ export class CampaignsRepository {
   }
 
   async sendSmsCampaign(id: string) {
-    const campaign = await this.prisma.smsCampaign.findUnique({ where: { id } });
+    const campaign = await this.prisma.smsCampaign.findUnique({
+      where: { id },
+    });
     if (!campaign) throw new Error('Campaign not found');
 
     const leadCount = await this.prisma.lead.count({
@@ -144,7 +164,11 @@ export class CampaignsRepository {
   }
 
   // --- Templates ---
-  async createTemplate(data: CreateTemplateDto, actorId: string, tenantId?: string | null) {
+  async createTemplate(
+    data: CreateTemplateDto,
+    actorId: string,
+    tenantId?: string | null,
+  ) {
     return this.prisma.messageTemplate.create({
       data: {
         name: data.name,
@@ -192,7 +216,10 @@ export class CampaignsRepository {
     });
   }
 
-  async createWarmupProfile(data: CreateWarmupProfileDto, tenantId?: string | null) {
+  async createWarmupProfile(
+    data: CreateWarmupProfileDto,
+    tenantId?: string | null,
+  ) {
     return this.prisma.emailWarmupProfile.create({
       data: {
         emailAddress: data.emailAddress,
@@ -223,7 +250,11 @@ export class CampaignsRepository {
     });
   }
 
-  async createFunnel(data: CreateFunnelDto, actorId: string, tenantId?: string | null) {
+  async createFunnel(
+    data: CreateFunnelDto,
+    actorId: string,
+    tenantId?: string | null,
+  ) {
     let stagesToCreate = data.stages;
 
     if (!stagesToCreate || stagesToCreate.length === 0) {
@@ -286,7 +317,12 @@ export class CampaignsRepository {
             order: s.order ?? idx,
             visitors: s.visitors ?? 0,
             conversions: s.conversions ?? 0,
-            dropoffRate: s.visitors && s.visitors > 0 ? Number(((1 - (s.conversions ?? 0) / s.visitors) * 100).toFixed(1)) : 0,
+            dropoffRate:
+              s.visitors && s.visitors > 0
+                ? Number(
+                    ((1 - (s.conversions ?? 0) / s.visitors) * 100).toFixed(1),
+                  )
+                : 0,
           })),
         },
       },

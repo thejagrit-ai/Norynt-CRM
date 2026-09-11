@@ -39,10 +39,7 @@ export class PaymentsController {
   // ─── INVOICE PAYMENT INITIATION ───
 
   @Post('invoices/:id/pay')
-  @Permissions(
-    PERMISSIONS.INVOICE.UPDATE,
-    PERMISSIONS.INVOICE.READ_FINANCIAL,
-  )
+  @Permissions(PERMISSIONS.INVOICE.UPDATE, PERMISSIONS.INVOICE.READ_FINANCIAL)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Initiate payment for an invoice with configured gateway',
@@ -62,10 +59,7 @@ export class PaymentsController {
   }
 
   @Post('invoices/:id/pay/iyzico')
-  @Permissions(
-    PERMISSIONS.INVOICE.UPDATE,
-    PERMISSIONS.INVOICE.READ_FINANCIAL,
-  )
+  @Permissions(PERMISSIONS.INVOICE.UPDATE, PERMISSIONS.INVOICE.READ_FINANCIAL)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Legacy alias for invoice payment initiation' })
   initiateLegacy(
@@ -79,12 +73,7 @@ export class PaymentsController {
       (Array.isArray(fwd) ? fwd[0] : fwd?.split(',')[0])?.trim() ||
       req.ip ||
       '127.0.0.1';
-    return this.service.initiate(
-      id,
-      { ...dto, provider: 'iyzico' },
-      actor,
-      ip,
-    );
+    return this.service.initiate(id, { ...dto, provider: 'iyzico' }, actor, ip);
   }
 
   // ─── ADMIN PAYMENT SETTINGS ───

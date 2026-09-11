@@ -50,7 +50,7 @@ export class WhatsAppRepository {
 
   listBroadcasts(tenantId?: string | null) {
     return this.prisma.whatsAppBroadcast.findMany({
-      where: tenantId ? { tenantId } : undefined,
+      where: { tenantId: tenantId ?? null },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -74,7 +74,7 @@ export class WhatsAppRepository {
 
   listTemplates(tenantId?: string | null) {
     return this.prisma.whatsAppTemplate.findMany({
-      where: tenantId ? { tenantId } : undefined,
+      where: { tenantId: tenantId ?? null },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -98,7 +98,7 @@ export class WhatsAppRepository {
 
   listQuickReplies(tenantId?: string | null) {
     return this.prisma.quickReply.findMany({
-      where: tenantId ? { tenantId } : undefined,
+      where: { tenantId: tenantId ?? null },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -118,13 +118,13 @@ export class WhatsAppRepository {
   // --- Audience Resolution ---
   countLeads(tenantId?: string | null) {
     return this.prisma.lead.count({
-      where: tenantId ? { tenantId } : undefined,
+      where: { tenantId: tenantId ?? null },
     });
   }
 
   countContacts(tenantId?: string | null) {
     return this.prisma.contact.count({
-      where: tenantId ? { tenantId } : undefined,
+      where: { tenantId: tenantId ?? null },
     });
   }
 
@@ -132,7 +132,7 @@ export class WhatsAppRepository {
     return this.prisma.lead.findMany({
       where: {
         phone: { not: null },
-        ...(tenantId ? { tenantId } : {}),
+        tenantId: tenantId ?? null,
       },
       select: { id: true, firstName: true, lastName: true, phone: true },
       take: limit,
@@ -143,7 +143,7 @@ export class WhatsAppRepository {
     return this.prisma.contact.findMany({
       where: {
         phone: { not: null },
-        ...(tenantId ? { tenantId } : {}),
+        tenantId: tenantId ?? null,
       },
       select: { id: true, firstName: true, lastName: true, phone: true },
       take: limit,
@@ -155,7 +155,7 @@ export class WhatsAppRepository {
     return this.prisma.automationRule.findMany({
       where: {
         trigger: { startsWith: 'WHATSAPP_' },
-        ...(tenantId ? { tenantId } : {}),
+        tenantId: tenantId ?? null,
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -182,7 +182,7 @@ export class WhatsAppRepository {
       where: {
         trigger,
         isActive: true,
-        ...(tenantId ? { tenantId } : {}),
+        tenantId: tenantId ?? null,
       },
     });
   }

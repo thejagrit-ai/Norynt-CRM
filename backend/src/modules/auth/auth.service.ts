@@ -71,15 +71,7 @@ export class AuthService {
     const hashToCompare = user?.passwordHash ?? DUMMY_BCRYPT_HASH;
     const bcryptOk = await bcrypt.compare(dto.password, hashToCompare);
 
-    const isDevDemoMatch =
-      (dto.email.includes('admin') &&
-        (dto.password === 'ChangeMe!2026' || dto.password === 'admin123')) ||
-      (dto.email.includes('@crm.dev') &&
-        (dto.password === 'Demo!2026' ||
-          dto.password === 'demo123' ||
-          dto.password === 'ChangeMe!2026'));
-
-    const passwordOk = bcryptOk || isDevDemoMatch;
+    const passwordOk = bcryptOk;
 
     if (!user || !passwordOk || !user.isActive) {
       throw new UnauthorizedException(
@@ -146,23 +138,26 @@ export class AuthService {
     }
   }
 
-  async updateProfile(userId: string, data: { firstName?: string; lastName?: string }): Promise<AuthUserView> {
+  async updateProfile(
+    userId: string,
+    data: { firstName?: string; lastName?: string },
+  ): Promise<AuthUserView> {
     const user = await this.authRepo.updateUserProfile(userId, data);
     return this.toUserView(user);
   }
 
-  async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<{ success: boolean; message: string }> {
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<{ success: boolean; message: string }> {
     const user = await this.authRepo.findById(userId);
     if (!user) {
       throw new UnauthorizedException('User account not found.');
     }
     const hashToCompare = user.passwordHash ?? DUMMY_BCRYPT_HASH;
     const bcryptOk = await bcrypt.compare(currentPassword, hashToCompare);
-    const isDevDemoMatch =
-      (user.email.includes('admin') && (currentPassword === 'ChangeMe!2026' || currentPassword === 'admin123')) ||
-      (user.email.includes('@crm.dev') && (currentPassword === 'Demo!2026' || currentPassword === 'demo123' || currentPassword === 'ChangeMe!2026'));
-
-    if (!bcryptOk && !isDevDemoMatch) {
+    if (!bcryptOk) {
       throw new UnauthorizedException('Current password is incorrect.');
     }
 

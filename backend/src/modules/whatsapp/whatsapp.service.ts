@@ -205,7 +205,7 @@ export class WhatsAppService {
             waId: msg.id ?? null,
             leadId: link.leadId,
             contactId: link.contactId,
-            tenantId: null,
+            tenantId: link.tenantId,
           });
           stored += 1;
         }
@@ -234,17 +234,31 @@ export class WhatsAppService {
     phone: string,
     leadId?: string | null,
     contactId?: string | null,
-  ): Promise<{ leadId: string | null; contactId: string | null }> {
+  ): Promise<{
+    leadId: string | null;
+    contactId: string | null;
+    tenantId: string | null;
+  }> {
     if (leadId || contactId) {
-      return { leadId: leadId ?? null, contactId: contactId ?? null };
+      return {
+        leadId: leadId ?? null,
+        contactId: contactId ?? null,
+        tenantId: null,
+      };
     }
     const tail = phone.slice(-10);
-    if (tail.length < 7) return { leadId: null, contactId: null };
+    if (tail.length < 7)
+      return { leadId: null, contactId: null, tenantId: null };
     const [lead, contact] = await Promise.all([
       this.repo.findLeadByPhoneTail(tail),
       this.repo.findContactByPhoneTail(tail),
     ]);
-    return { leadId: lead?.id ?? null, contactId: contact?.id ?? null };
+    const tenantId = lead?.tenantId ?? contact?.tenantId ?? null;
+    return {
+      leadId: lead?.id ?? null,
+      contactId: contact?.id ?? null,
+      tenantId,
+    };
   }
 
   private digits(v: string): string {
@@ -260,7 +274,10 @@ export class WhatsAppService {
     let audienceCount = 0;
     if (dto.targetAudience === 'Contacts') {
       audienceCount = await this.repo.countContacts(tenantId);
-    } else if (dto.targetAudience === 'Qualified Leads' || dto.targetAudience === 'All Leads') {
+    } else if (
+      dto.targetAudience === 'Qualified Leads' ||
+      dto.targetAudience === 'All Leads'
+    ) {
       audienceCount = await this.repo.countLeads(tenantId);
     } else if (dto.manualNumbers && Array.isArray(dto.manualNumbers)) {
       audienceCount = dto.manualNumbers.length;
@@ -292,7 +309,9 @@ export class WhatsAppService {
     }
     const creds = await this.connections.getCredentials('whatsapp');
     if (!creds) {
-      throw new BadRequestException('WhatsApp is not connected. Configure credentials in Connections first.');
+      throw new BadRequestException(
+        'WhatsApp is not connected. Configure credentials in Connections first.',
+      );
     }
 
     let targetCount = broadcast.totalCount;
@@ -324,9 +343,14 @@ export class WhatsAppService {
 
   async createTemplate(dto: any, tenantId?: string | null) {
     // Validate template name format: lowercase and underscores
-    const cleanName = (dto.name || '').trim().toLowerCase().replace(/\s+/g, '_');
+    const cleanName = (dto.name || '')
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '_');
     if (!/^[a-z0-9_]+$/.test(cleanName)) {
-      throw new BadRequestException('Template name must be lowercase snake_case (e.g. order_update_v1)');
+      throw new BadRequestException(
+        'Template name must be lowercase snake_case (e.g. order_update_v1)',
+      );
     }
 
     return this.repo.createTemplate({
@@ -358,9 +382,13 @@ export class WhatsAppService {
 
   async createQuickReply(dto: any, actorId: string, tenantId?: string | null) {
     const rawShortcut = (dto.shortcut || '').trim();
-    const shortcut = rawShortcut.startsWith('/') ? rawShortcut : `/${rawShortcut}`;
+    const shortcut = rawShortcut.startsWith('/')
+      ? rawShortcut
+      : `/${rawShortcut}`;
     if (shortcut.length < 2) {
-      throw new BadRequestException('Shortcut must start with / and contain at least 1 character (e.g. /pricing)');
+      throw new BadRequestException(
+        'Shortcut must start with / and contain at least 1 character (e.g. /pricing)',
+      );
     }
 
     return this.repo.createQuickReply({
@@ -376,7 +404,9 @@ export class WhatsAppService {
   async updateQuickReply(id: string, dto: any) {
     if (dto.shortcut) {
       const rawShortcut = dto.shortcut.trim();
-      dto.shortcut = rawShortcut.startsWith('/') ? rawShortcut : `/${rawShortcut}`;
+      dto.shortcut = rawShortcut.startsWith('/')
+        ? rawShortcut
+        : `/${rawShortcut}`;
     }
     return this.repo.updateQuickReply(id, dto);
   }
@@ -394,12 +424,15 @@ export class WhatsAppService {
     if (!dto.name?.trim()) {
       throw new BadRequestException('Workflow name is required.');
     }
-    const trigger = dto.trigger?.startsWith('WHATSAPP_') ? dto.trigger : `WHATSAPP_${dto.trigger || 'KEYWORD'}`;
+    const trigger = dto.trigger?.startsWith('WHATSAPP_')
+      ? dto.trigger
+      : `WHATSAPP_${dto.trigger || 'KEYWORD'}`;
 
     return this.repo.createWorkflow({
       name: dto.name,
       trigger,
-      conditions: dto.conditions || (dto.keyword ? { keyword: dto.keyword } : {}),
+      conditions:
+        dto.conditions || (dto.keyword ? { keyword: dto.keyword } : {}),
       actions: dto.actions || [],
       isActive: dto.isActive !== false,
       tenantId: tenantId ?? null,
@@ -410,7 +443,9 @@ export class WhatsAppService {
     const updateData: any = {};
     if (dto.name !== undefined) updateData.name = dto.name;
     if (dto.trigger !== undefined) {
-      updateData.trigger = dto.trigger.startsWith('WHATSAPP_') ? dto.trigger : `WHATSAPP_${dto.trigger}`;
+      updateData.trigger = dto.trigger.startsWith('WHATSAPP_')
+        ? dto.trigger
+        : `WHATSAPP_${dto.trigger}`;
     }
     if (dto.conditions !== undefined) updateData.conditions = dto.conditions;
     if (dto.actions !== undefined) updateData.actions = dto.actions;

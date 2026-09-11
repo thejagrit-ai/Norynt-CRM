@@ -1,7 +1,11 @@
 // src/modules/masters/masters.service.ts
 import { Injectable } from '@nestjs/common';
 import { MastersRepository } from './masters.repository';
-import { CreateTaxSlabDto, CreateTncSetDto, CreateUomDto } from './dto/masters.dto';
+import {
+  CreateTaxSlabDto,
+  CreateTncSetDto,
+  CreateUomDto,
+} from './dto/masters.dto';
 import { AuthenticatedUser } from '../../common/decorators/current-user.decorator';
 
 @Injectable()
@@ -13,12 +17,42 @@ export class MastersService {
     let slabs = await this.repo.findAllTaxSlabs(actor.tenantId);
     if (slabs.length === 0) {
       const defaults = [
-        { name: 'Zero Tax (0%)', rate: 0, cgstRate: 0, sgstRate: 0, igstRate: 0, isDefault: false },
-        { name: 'Standard GST (18%)', rate: 18, cgstRate: 9, sgstRate: 9, igstRate: 18, isDefault: true },
-        { name: 'Reduced Rate (5%)', rate: 5, cgstRate: 2.5, sgstRate: 2.5, igstRate: 5, isDefault: false },
-        { name: 'Standard VAT (20%)', rate: 20, cgstRate: 0, sgstRate: 0, igstRate: 20, isDefault: false },
+        {
+          name: 'Zero Tax (0%)',
+          rate: 0,
+          cgstRate: 0,
+          sgstRate: 0,
+          igstRate: 0,
+          isDefault: false,
+        },
+        {
+          name: 'Standard GST (18%)',
+          rate: 18,
+          cgstRate: 9,
+          sgstRate: 9,
+          igstRate: 18,
+          isDefault: true,
+        },
+        {
+          name: 'Reduced Rate (5%)',
+          rate: 5,
+          cgstRate: 2.5,
+          sgstRate: 2.5,
+          igstRate: 5,
+          isDefault: false,
+        },
+        {
+          name: 'Standard VAT (20%)',
+          rate: 20,
+          cgstRate: 0,
+          sgstRate: 0,
+          igstRate: 20,
+          isDefault: false,
+        },
       ];
-      slabs = await Promise.all(defaults.map((d) => this.repo.createTaxSlab(d, actor.tenantId)));
+      slabs = await Promise.all(
+        defaults.map((d) => this.repo.createTaxSlab(d, actor.tenantId)),
+      );
     }
     return slabs;
   }
@@ -47,7 +81,9 @@ export class MastersService {
         { code: 'MONTH', name: 'Months', symbol: 'mo', precision: 0 },
         { code: 'SET', name: 'Set', symbol: 'set', precision: 0 },
       ];
-      uoms = await Promise.all(defaults.map((d) => this.repo.createUom(d, actor.tenantId)));
+      uoms = await Promise.all(
+        defaults.map((d) => this.repo.createUom(d, actor.tenantId)),
+      );
     }
     return uoms;
   }
@@ -72,17 +108,21 @@ export class MastersService {
         {
           title: 'Standard Quotation Terms',
           type: 'QUOTATION',
-          content: '1. Quotation is valid for 30 calendar days from issuance.\n2. Payment: 50% advance on order confirmation, 50% prior to dispatch.\n3. Delivery timeframe starts upon receipt of advance payment.\n4. All taxes are calculated according to local statutory laws.',
+          content:
+            '1. Quotation is valid for 30 calendar days from issuance.\n2. Payment: 50% advance on order confirmation, 50% prior to dispatch.\n3. Delivery timeframe starts upon receipt of advance payment.\n4. All taxes are calculated according to local statutory laws.',
           isDefault: true,
         },
         {
           title: 'Service & SLA Terms',
           type: 'INVOICE',
-          content: '1. Net payment due within 14 days of invoice receipt.\n2. Invoices overdue by >15 days accrue 1.5% late fee per month.\n3. Support coverage is provided under Tier-1 Enterprise SLA.',
+          content:
+            '1. Net payment due within 14 days of invoice receipt.\n2. Invoices overdue by >15 days accrue 1.5% late fee per month.\n3. Support coverage is provided under Tier-1 Enterprise SLA.',
           isDefault: false,
         },
       ];
-      sets = await Promise.all(defaults.map((d) => this.repo.createTncSet(d, actor.tenantId)));
+      sets = await Promise.all(
+        defaults.map((d) => this.repo.createTncSet(d, actor.tenantId)),
+      );
     }
     return sets;
   }

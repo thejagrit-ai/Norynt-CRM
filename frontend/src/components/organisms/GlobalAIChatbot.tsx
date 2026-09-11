@@ -91,7 +91,7 @@ export function GlobalAIChatbot() {
         providerBadge: getProviderLabel(botConfig.provider, botConfig.model),
       },
     ]);
-  }, [botConfig.welcomeMessage]);
+  }, [botConfig.welcomeMessage, botConfig.provider, botConfig.model]);
 
   useEffect(() => {
     if (isOpen) {

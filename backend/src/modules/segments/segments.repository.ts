@@ -7,7 +7,11 @@ import { CreateSegmentDto, UpdateSegmentDto } from './dto/segment.dto';
 export class SegmentsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreateSegmentDto, actorId: string, tenantId?: string | null) {
+  async create(
+    data: CreateSegmentDto,
+    actorId: string,
+    tenantId?: string | null,
+  ) {
     return this.prisma.contactSegment.create({
       data: {
         name: data.name,
@@ -40,8 +44,12 @@ export class SegmentsRepository {
       where: { id },
       data: {
         ...(data.name !== undefined && { name: data.name }),
-        ...(data.description !== undefined && { description: data.description }),
-        ...(data.filterRules !== undefined && { filterRules: data.filterRules }),
+        ...(data.description !== undefined && {
+          description: data.description,
+        }),
+        ...(data.filterRules !== undefined && {
+          filterRules: data.filterRules,
+        }),
       },
     });
   }

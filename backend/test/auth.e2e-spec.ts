@@ -87,7 +87,9 @@ describe('Auth (e2e)', () => {
       .send({ email, password: 'WrongPass!99' })
       .expect(401)
       .expect((res) => {
-        expect(res.body.error.message).toMatch(/Invalid credentials|Authentication required|Geçersiz kimlik bilgileri/i);
+        expect(res.body.error.message).toMatch(
+          /Invalid credentials|Authentication required|Geçersiz kimlik bilgileri/i,
+        );
       }));
 
   it('E-1.4 doğru kimlik → 200, accessToken + httpOnly Set-Cookie', async () => {

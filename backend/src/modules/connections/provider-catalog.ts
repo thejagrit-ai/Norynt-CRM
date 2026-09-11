@@ -484,9 +484,15 @@ export async function testConnection(
       const apiKey = secrets.apiKey;
       const secretKey = secrets.secretKey;
       if (!apiKey || !secretKey) {
-        return { ok: false, message: 'iyzico API Key and Secret Key are required.' };
+        return {
+          ok: false,
+          message: 'iyzico API Key and Secret Key are required.',
+        };
       }
-      return { ok: true, message: 'iyzico API connection test passed successfully.' };
+      return {
+        ok: true,
+        message: 'iyzico API connection test passed successfully.',
+      };
     }
 
     if (provider === 'whatsapp') {

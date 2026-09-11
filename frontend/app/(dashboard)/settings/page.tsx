@@ -1,6 +1,6 @@
 'use client';
 // app/(dashboard)/settings/page.tsx — Master Settings Hub & AI API Key Vault
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import {
   Settings,
@@ -91,6 +91,36 @@ export default function SettingsHubPage() {
   const [isFetchingModels, setIsFetchingModels] = useState(false);
   const [modelsDetected, setModelsDetected] = useState(false);
 
+  const handleDetectModels = useCallback(
+    async (providerOverride?: string, keyOverride?: string) => {
+      const p = providerOverride || aiProvider;
+      const k = keyOverride !== undefined ? keyOverride : aiApiKey;
+      if (!k || k.trim().length < 6) return;
+
+      setIsFetchingModels(true);
+      try {
+        const { api } = await import('@/lib/api');
+        const res = await api.post('/ai/models', {
+          provider: p,
+          apiKey: k.trim(),
+        });
+        const data = res.data?.data || res.data;
+        if (data?.models && Array.isArray(data.models) && data.models.length > 0) {
+          setAvailableModels(data.models);
+          setModelsDetected(true);
+          if (!data.models.some((m: any) => m.id === aiModel)) {
+            setAiModel(data.models[0].id);
+          }
+        }
+      } catch {
+        /* ignore */
+      } finally {
+        setIsFetchingModels(false);
+      }
+    },
+    [aiProvider, aiApiKey, aiModel],
+  );
+
   // Load existing AI configuration
   useEffect(() => {
     try {
@@ -110,34 +140,7 @@ export default function SettingsHubPage() {
     } catch {
       /* ignore */
     }
-  }, []);
-
-  const handleDetectModels = async (providerOverride?: string, keyOverride?: string) => {
-    const p = providerOverride || aiProvider;
-    const k = keyOverride !== undefined ? keyOverride : aiApiKey;
-    if (!k || k.trim().length < 6) return;
-
-    setIsFetchingModels(true);
-    try {
-      const { api } = await import('@/lib/api');
-      const res = await api.post('/ai/models', {
-        provider: p,
-        apiKey: k.trim(),
-      });
-      const data = res.data?.data || res.data;
-      if (data?.models && Array.isArray(data.models) && data.models.length > 0) {
-        setAvailableModels(data.models);
-        setModelsDetected(true);
-        if (!data.models.some((m: any) => m.id === aiModel)) {
-          setAiModel(data.models[0].id);
-        }
-      }
-    } catch {
-      /* ignore */
-    } finally {
-      setIsFetchingModels(false);
-    }
-  };
+  }, [handleDetectModels]);
 
   const handleSaveGeneral = (e: React.FormEvent) => {
     e.preventDefault();

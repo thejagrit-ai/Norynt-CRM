@@ -41,7 +41,10 @@ export class SettingsService {
     return this.repo.getSubscription(actor.tenantId);
   }
 
-  async updateSubscription(dto: UpdateSubscriptionDto, actor: AuthenticatedUser) {
+  async updateSubscription(
+    dto: UpdateSubscriptionDto,
+    actor: AuthenticatedUser,
+  ) {
     return this.repo.updateSubscription(dto, actor.tenantId);
   }
 
@@ -72,7 +75,10 @@ export class SettingsService {
     return this.repo.getAssignmentRules(type, actor.tenantId);
   }
 
-  async createAssignmentRule(dto: CreateAssignmentRuleDto, actor: AuthenticatedUser) {
+  async createAssignmentRule(
+    dto: CreateAssignmentRuleDto,
+    actor: AuthenticatedUser,
+  ) {
     return this.repo.createAssignmentRule(dto, actor.id, actor.tenantId);
   }
 
@@ -89,7 +95,10 @@ export class SettingsService {
     return this.repo.getChatbotConfig(actor.tenantId);
   }
 
-  async updateChatbotConfig(dto: UpdateChatbotConfigDto, actor: AuthenticatedUser) {
+  async updateChatbotConfig(
+    dto: UpdateChatbotConfigDto,
+    actor: AuthenticatedUser,
+  ) {
     return this.repo.updateChatbotConfig(dto, actor.tenantId);
   }
 }

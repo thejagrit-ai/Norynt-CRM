@@ -33,7 +33,10 @@ export class LeadGroupsController {
 
   @Post()
   @Permissions(PERMISSIONS.LEAD_GROUP.CREATE)
-  create(@Body() dto: CreateLeadGroupDto, @CurrentUser() actor: AuthenticatedUser) {
+  create(
+    @Body() dto: CreateLeadGroupDto,
+    @CurrentUser() actor: AuthenticatedUser,
+  ) {
     return this.service.create(dto, actor);
   }
 

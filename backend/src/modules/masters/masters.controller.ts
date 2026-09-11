@@ -20,7 +20,11 @@ import {
   AuthenticatedUser,
 } from '../../common/decorators/current-user.decorator';
 import { MastersService } from './masters.service';
-import { CreateTaxSlabDto, CreateTncSetDto, CreateUomDto } from './dto/masters.dto';
+import {
+  CreateTaxSlabDto,
+  CreateTncSetDto,
+  CreateUomDto,
+} from './dto/masters.dto';
 
 @Controller('masters')
 @UseGuards(JwtAuthGuard, RolesGuard)

@@ -17,15 +17,34 @@ export class SupportService {
     if (categories.length === 0) {
       // Seed default helpful categories and starter articles
       const c1 = await this.repo.createCategory(
-        { name: 'Getting Started', slug: 'getting-started', description: 'Essential setup, profile config, and initial CRM tour', icon: 'Rocket', position: 1 },
+        {
+          name: 'Getting Started',
+          slug: 'getting-started',
+          description: 'Essential setup, profile config, and initial CRM tour',
+          icon: 'Rocket',
+          position: 1,
+        },
         actor.tenantId,
       );
       const c2 = await this.repo.createCategory(
-        { name: 'Sales & Pipelines', slug: 'sales-pipelines', description: 'Managing deals, Kanban board moves, and CPQ quotes', icon: 'Kanban', position: 2 },
+        {
+          name: 'Sales & Pipelines',
+          slug: 'sales-pipelines',
+          description: 'Managing deals, Kanban board moves, and CPQ quotes',
+          icon: 'Kanban',
+          position: 2,
+        },
         actor.tenantId,
       );
-      const c3 = await this.repo.createCategory(
-        { name: 'Billing & Payments', slug: 'billing-payments', description: 'Invoices, payment links, tax slabs and financial records', icon: 'Receipt', position: 3 },
+      await this.repo.createCategory(
+        {
+          name: 'Billing & Payments',
+          slug: 'billing-payments',
+          description:
+            'Invoices, payment links, tax slabs and financial records',
+          icon: 'Receipt',
+          position: 3,
+        },
         actor.tenantId,
       );
 
@@ -34,7 +53,8 @@ export class SupportService {
           categoryId: c1.id,
           title: 'How to invite team members and assign RBAC roles',
           slug: 'how-to-invite-team-members',
-          content: 'Navigate to Team Members under Admin in the left sidebar. Click Invite Member, specify their email address, and select an RBAC Role (Admin, Sales, Finance, Manager, or Support).',
+          content:
+            'Navigate to Team Members under Admin in the left sidebar. Click Invite Member, specify their email address, and select an RBAC Role (Admin, Sales, Finance, Manager, or Support).',
           isPublished: true,
         },
         actor.tenantId,
@@ -45,7 +65,8 @@ export class SupportService {
           categoryId: c2.id,
           title: 'Configuring custom stages in your sales pipeline',
           slug: 'configuring-pipeline-stages',
-          content: 'You can customize your sales funnel by going to Sales Stages. Add new columns, drag to reorder, and set probability weights for accurate forecasting.',
+          content:
+            'You can customize your sales funnel by going to Sales Stages. Add new columns, drag to reorder, and set probability weights for accurate forecasting.',
           isPublished: true,
         },
         actor.tenantId,
@@ -71,7 +92,10 @@ export class SupportService {
     return article;
   }
 
-  async createArticle(dto: CreateKnowledgeArticleDto, actor: AuthenticatedUser) {
+  async createArticle(
+    dto: CreateKnowledgeArticleDto,
+    actor: AuthenticatedUser,
+  ) {
     return this.repo.createArticle(dto, actor.tenantId);
   }
 

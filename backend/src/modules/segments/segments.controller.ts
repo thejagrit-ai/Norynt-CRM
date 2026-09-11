@@ -29,7 +29,10 @@ export class SegmentsController {
 
   @Post()
   @Permissions(PERMISSIONS.SEGMENT.CREATE)
-  create(@Body() dto: CreateSegmentDto, @CurrentUser() actor: AuthenticatedUser) {
+  create(
+    @Body() dto: CreateSegmentDto,
+    @CurrentUser() actor: AuthenticatedUser,
+  ) {
     return this.service.create(dto, actor);
   }
 

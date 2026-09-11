@@ -154,4 +154,3 @@ export class WhatsAppController {
     return this.service.toggleWorkflow(id);
   }
 }
-

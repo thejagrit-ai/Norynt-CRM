@@ -36,14 +36,19 @@ export class AiController {
 
   @Post('models')
   @Permissions(PERMISSIONS.AI.USE)
-  @ApiOperation({ summary: 'Sağlayıcı ve API anahtarına göre kullanılabilir modelleri tespit et' })
+  @ApiOperation({
+    summary:
+      'Sağlayıcı ve API anahtarına göre kullanılabilir modelleri tespit et',
+  })
   fetchModels(@Body() dto: FetchModelsDto) {
     return this.ai.fetchAvailableModels(dto);
   }
 
   @Post('test-key')
   @Permissions(PERMISSIONS.AI.USE)
-  @ApiOperation({ summary: 'AI API anahtarı doğrula (Groq, Gemini, OpenAI, Claude)' })
+  @ApiOperation({
+    summary: 'AI API anahtarı doğrula (Groq, Gemini, OpenAI, Claude)',
+  })
   testApiKey(@Body() dto: TestAiKeyDto) {
     return this.ai.testApiKey(dto);
   }
@@ -51,10 +56,7 @@ export class AiController {
   @Post('chat')
   @Permissions(PERMISSIONS.AI.USE)
   @ApiOperation({ summary: 'Hesaba özel canlı CRM telemetrisi ile AI sohbet' })
-  chat(
-    @Body() dto: ChatAiDto,
-    @CurrentUser() actor: AuthenticatedUser,
-  ) {
+  chat(@Body() dto: ChatAiDto, @CurrentUser() actor: AuthenticatedUser) {
     return this.ai.chatWithAccountCrm(dto, actor);
   }
 

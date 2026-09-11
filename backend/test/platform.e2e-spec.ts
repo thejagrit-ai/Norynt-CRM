@@ -88,7 +88,12 @@ describe('Platform — audit/search/gdpr (e2e)', () => {
       .expect(200);
     const found = (
       logs.body.data as { action: string; entityId: string }[]
-    ).some((l) => l.action.startsWith('POST') || l.action.includes('DEAL') || ['POST', 'CREATE', 'deal.create'].includes(l.action));
+    ).some(
+      (l) =>
+        l.action.startsWith('POST') ||
+        l.action.includes('DEAL') ||
+        ['POST', 'CREATE', 'deal.create'].includes(l.action),
+    );
     expect(found).toBe(true);
     expect(logs.body.meta.total).toBeGreaterThan(0);
   });

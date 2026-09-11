@@ -7,7 +7,11 @@ import { CreateMediaFileDto } from './dto/media.dto';
 export class MediaRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreateMediaFileDto, actorId: string, tenantId?: string | null) {
+  async create(
+    data: CreateMediaFileDto,
+    actorId: string,
+    tenantId?: string | null,
+  ) {
     return this.prisma.mediaFile.create({
       data: {
         filename: data.filename,
