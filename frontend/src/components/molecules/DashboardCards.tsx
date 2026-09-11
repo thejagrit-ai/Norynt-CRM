@@ -25,8 +25,16 @@ export function num(v: string | number | null | undefined): number {
 }
 
 export function shortMonth(m: string): string {
+  if (!m) return '';
   const parts = m.split('-');
-  return parts.length === 2 ? `${parts[1]}/${parts[0].slice(2)}` : m;
+  if (parts.length === 2) {
+    const monthNum = parseInt(parts[1], 10);
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    if (monthNum >= 1 && monthNum <= 12) {
+      return months[monthNum - 1];
+    }
+  }
+  return m;
 }
 
 export function formatCurrency(v: string | number | null | undefined): string {

@@ -1,5 +1,5 @@
 'use client';
-// src/components/molecules/Charts.tsx — modern SVG chart primitives with gradient fills & animations.
+// src/components/molecules/Charts.tsx — High-performance, responsive CRM chart primitives with rich tooltips, gradient bars, and theme adaptation.
 import React, { useId, useState } from 'react';
 
 export interface Series {
@@ -9,29 +9,29 @@ export interface Series {
 
 function Legend({ series }: { series: Series[] }) {
   return (
-    <div className="mb-3 flex flex-wrap items-center gap-3 text-xs font-medium text-slate-300">
+    <div className="mb-4 flex flex-wrap items-center gap-3 text-xs font-medium">
       {series.map((s) => (
         <span
           key={s.name}
-          className="inline-flex items-center gap-1.5 rounded-full border border-slate-700/60 bg-slate-800/60 px-2.5 py-1 backdrop-blur-sm shadow-sm"
+          className="inline-flex items-center gap-2 rounded-full border border-slate-200/80 bg-slate-50 dark:border-slate-800/80 dark:bg-slate-900/60 px-3 py-1 text-slate-700 dark:text-slate-300 shadow-xs"
         >
           <span
-            className="inline-block h-2 w-2 rounded-full shadow-[0_0_6px_currentColor]"
-            style={{ backgroundColor: s.color, color: s.color }}
+            className="inline-block h-2.5 w-2.5 rounded-full shadow-xs"
+            style={{ backgroundColor: s.color }}
           />
-          <span className="text-slate-200">{s.name}</span>
+          <span className="font-semibold text-xs">{s.name}</span>
         </span>
       ))}
     </div>
   );
 }
 
-// Grouped vertical bar chart (multi-series, gradient fill).
+// Modern grouped column bar chart with Y-axis scale, rich hover tooltips & responsive alignment.
 export function BarChart({
   labels,
   series,
   values,
-  height = 180,
+  height = 190,
   format = (n) => String(n),
 }: {
   labels: string[];
@@ -40,84 +40,132 @@ export function BarChart({
   height?: number;
   format?: (n: number) => string;
 }) {
-  const chartId = useId().replace(/:/g, '');
-  const [hoveredIdx, setHoveredIdx] = useState<{ label: number; series: number } | null>(null);
+  const [hoveredLabelIdx, setHoveredLabelIdx] = useState<number | null>(null);
 
   const flat = values.flat();
-  const max = Math.max(1, ...flat);
-  const g = labels.length || 1;
-  const s = series.length || 1;
-  const groupW = 100 / g;
-  const pad = groupW * 0.18;
-  const barArea = groupW * 0.64;
-  const barW = barArea / s;
+  const maxVal = Math.max(1, ...flat);
+
+  // Generate 3 clean Y-axis ticks
+  const yTicks = [maxVal, Math.round(maxVal / 2), 0];
 
   return (
-    <div className="w-full">
+    <div className="w-full select-none">
       <Legend series={series} />
-      <div className="relative">
-        <svg
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-          style={{ width: '100%', height }}
-          role="img"
-          className="overflow-visible"
+
+      {/* Chart Main Layout: Y-Axis Ticks + Column Area */}
+      <div className="flex items-stretch gap-2.5">
+        {/* Y-Axis Value Ticks */}
+        <div
+          className="flex flex-col justify-between text-[10px] font-bold text-slate-400 dark:text-slate-500 tabular-nums shrink-0 py-1 text-right min-w-[36px]"
+          style={{ height }}
         >
-          <defs>
-            {series.map((ser, j) => (
-              <linearGradient
-                key={ser.name}
-                id={`bar-grad-${chartId}-${j}`}
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="1"
-              >
-                <stop offset="0%" stopColor={ser.color} stopOpacity="1" />
-                <stop offset="100%" stopColor={ser.color} stopOpacity="0.4" />
-              </linearGradient>
-            ))}
-          </defs>
+          {yTicks.map((tick, idx) => (
+            <span key={idx} className="leading-none truncate">
+              {format(tick)}
+            </span>
+          ))}
+        </div>
 
-          {/* Background grid lines */}
-          <line x1="0" y1="25" x2="100" y2="25" stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" strokeDasharray="1 2" />
-          <line x1="0" y1="50" x2="100" y2="50" stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" strokeDasharray="1 2" />
-          <line x1="0" y1="75" x2="100" y2="75" stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" strokeDasharray="1 2" />
-          <line x1="0" y1="99" x2="100" y2="99" stroke="rgba(255,255,255,0.1)" strokeWidth="0.8" />
+        {/* Chart Canvas Area */}
+        <div className="relative flex-1 flex flex-col justify-end" style={{ height }}>
+          {/* Background Horizontal Grid Guidelines */}
+          <div className="absolute inset-x-0 top-1 bottom-1 flex flex-col justify-between pointer-events-none">
+            <div className="border-b border-dashed border-slate-200/80 dark:border-slate-800/80 w-full" />
+            <div className="border-b border-dashed border-slate-200/80 dark:border-slate-800/80 w-full" />
+            <div className="border-b border-slate-200 dark:border-slate-800 w-full" />
+          </div>
 
-          {labels.map((_, i) =>
-            series.map((ser, j) => {
-              const v = values[j]?.[i] ?? 0;
-              const h = (v / max) * 90;
-              const x = i * groupW + pad + j * barW;
-              const isHovered = hoveredIdx?.label === i && hoveredIdx?.series === j;
+          {/* Columns Flex Container */}
+          <div className="relative z-10 flex h-full items-end justify-between gap-1 sm:gap-2 px-1">
+            {labels.map((label, i) => {
+              const isHovered = hoveredLabelIdx === i;
 
               return (
-                <rect
-                  key={`${i}-${j}`}
-                  x={x}
-                  y={100 - h}
-                  width={barW * 0.88}
-                  height={Math.max(1, h)}
-                  fill={`url(#bar-grad-${chartId}-${j})`}
-                  rx="1"
-                  className="transition-all duration-300 hover:brightness-125 cursor-pointer"
-                  style={{
-                    filter: isHovered ? `drop-shadow(0 0 4px ${ser.color})` : undefined,
-                  }}
-                  onMouseEnter={() => setHoveredIdx({ label: i, series: j })}
-                  onMouseLeave={() => setHoveredIdx(null)}
+                <div
+                  key={label}
+                  className="relative flex-1 flex h-full flex-col justify-end items-center group cursor-pointer"
+                  onMouseEnter={() => setHoveredLabelIdx(i)}
+                  onMouseLeave={() => setHoveredLabelIdx(null)}
                 >
-                  <title>{`${ser.name} (${labels[i]}): ${format(v)}`}</title>
-                </rect>
+                  {/* Floating Glassmorphic Tooltip */}
+                  {isHovered && (
+                    <div className="absolute bottom-full mb-3 z-30 min-w-[140px] rounded-xl border border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-slate-900/95 p-3 shadow-2xl backdrop-blur-md pointer-events-none animate-in fade-in zoom-in-95 duration-150">
+                      <p className="text-[11px] font-black text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800/80 pb-1.5 mb-2 text-center tracking-wide">
+                        {label}
+                      </p>
+                      <div className="space-y-1.5">
+                        {series.map((ser, j) => {
+                          const val = values[j]?.[i] ?? 0;
+                          return (
+                            <div key={ser.name} className="flex items-center justify-between text-[11px] gap-3">
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <span
+                                  className="h-2 w-2 rounded-full shrink-0 shadow-xs"
+                                  style={{ backgroundColor: ser.color }}
+                                />
+                                <span className="text-slate-600 dark:text-slate-400 font-semibold truncate">
+                                  {ser.name}:
+                                </span>
+                              </div>
+                              <span className="font-extrabold text-slate-900 dark:text-white tabular-nums shrink-0">
+                                {format(val)}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Column Highlight Backdrop */}
+                  <div
+                    className={`absolute inset-x-0.5 bottom-0 top-0 rounded-xl transition-all duration-200 ${
+                      isHovered
+                        ? 'bg-slate-100/90 dark:bg-slate-800/60 ring-1 ring-slate-200 dark:ring-slate-700/80 shadow-xs'
+                        : 'bg-transparent'
+                    }`}
+                  />
+
+                  {/* Side-by-Side Series Bar Columns */}
+                  <div className="relative z-10 flex items-end justify-center gap-1 sm:gap-1.5 w-full h-full pb-1 px-1">
+                    {series.map((ser, j) => {
+                      const val = values[j]?.[i] ?? 0;
+                      const heightPct = val > 0 ? Math.max(8, Math.round((val / maxVal) * 100)) : 4;
+
+                      return (
+                        <div
+                          key={ser.name}
+                          className="relative flex-1 max-w-[28px] rounded-t-lg transition-all duration-300 ease-out group-hover:brightness-110 shadow-xs"
+                          style={{
+                            height: `${heightPct}%`,
+                            background: `linear-gradient(180deg, ${ser.color} 0%, ${ser.color}d0 100%)`,
+                            boxShadow: isHovered ? `0 0 10px ${ser.color}40` : undefined,
+                          }}
+                        >
+                          {/* Top Highlight Sheen Cap */}
+                          <div className="absolute inset-x-0 top-0 h-[2px] bg-white/40 rounded-t-lg" />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               );
-            }),
-          )}
-        </svg>
+            })}
+          </div>
+        </div>
       </div>
-      <div className="mt-2 flex text-[11px] font-medium text-slate-400">
-        {labels.map((l) => (
-          <span key={l} className="flex-1 truncate text-center">
+
+      {/* X-Axis Month Labels */}
+      <div className="mt-2.5 flex items-center pl-[44px]">
+        {labels.map((l, i) => (
+          <span
+            key={l}
+            className={`flex-1 text-center text-xs font-bold truncate transition-colors ${
+              hoveredLabelIdx === i
+                ? 'text-brand-600 dark:text-brand-400 font-extrabold scale-105'
+                : 'text-slate-500 dark:text-slate-400'
+            }`}
+          >
             {l}
           </span>
         ))}
@@ -139,16 +187,16 @@ export function DonutChart({
   const R = 15.915; // circumference = 100
 
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-6">
+    <div className="flex flex-col sm:flex-row items-center gap-6 select-none">
       <div className="relative shrink-0">
-        <svg viewBox="0 0 36 36" style={{ width: 130, height: 130 }} role="img" className="rotate-[-90deg]">
+        <svg viewBox="0 0 36 36" style={{ width: 135, height: 135 }} role="img" className="rotate-[-90deg]">
           <circle
             cx="18"
             cy="18"
             r={R}
             fill="none"
-            stroke="rgba(255, 255, 255, 0.06)"
-            strokeWidth="3.8"
+            className="stroke-slate-200 dark:stroke-slate-800/60"
+            strokeWidth="4"
           />
           {data.map((d) => {
             const frac = (d.value / total) * 100;
@@ -160,11 +208,11 @@ export function DonutChart({
                 r={R}
                 fill="none"
                 stroke={d.color}
-                strokeWidth="3.8"
+                strokeWidth="4"
                 strokeDasharray={`${frac} ${100 - frac}`}
                 strokeDashoffset={-offset}
                 strokeLinecap="round"
-                className="transition-all duration-300 hover:brightness-125 cursor-pointer"
+                className="transition-all duration-300 hover:brightness-110 cursor-pointer"
               >
                 <title>{`${d.label}: ${format(d.value)} (${((d.value / total) * 100).toFixed(1)}%)`}</title>
               </circle>
@@ -175,27 +223,27 @@ export function DonutChart({
         </svg>
         {/* Center Total */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Total</span>
-          <span className="text-base font-bold text-white tabular-nums">{total}</span>
+          <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Total</span>
+          <span className="text-base font-black text-slate-900 dark:text-white tabular-nums">{total}</span>
         </div>
       </div>
 
-      <div className="flex-1 space-y-2 text-xs">
+      <div className="flex-1 space-y-2 text-xs w-full">
         {data.map((d) => (
           <div
             key={d.label}
-            className="flex items-center justify-between gap-3 rounded-lg border border-slate-800/60 bg-slate-900/50 px-3 py-1.5"
+            className="flex items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-slate-50 dark:border-slate-800/60 dark:bg-slate-900/50 px-3 py-2 transition hover:border-brand-500/30"
           >
             <div className="flex items-center gap-2">
               <span
-                className="inline-block h-2.5 w-2.5 rounded-full"
-                style={{ backgroundColor: d.color, boxShadow: `0 0 6px ${d.color}80` }}
+                className="inline-block h-2.5 w-2.5 rounded-full shadow-xs"
+                style={{ backgroundColor: d.color }}
               />
-              <span className="font-medium text-slate-200">{d.label}</span>
+              <span className="font-semibold text-slate-700 dark:text-slate-200">{d.label}</span>
             </div>
             <div className="flex items-center gap-1.5 tabular-nums">
-              <span className="font-semibold text-white">{format(d.value)}</span>
-              <span className="text-slate-400 text-[10px]">
+              <span className="font-extrabold text-slate-900 dark:text-white">{format(d.value)}</span>
+              <span className="text-slate-400 text-[10px] font-medium">
                 ({((d.value / total) * 100).toFixed(0)}%)
               </span>
             </div>
@@ -221,40 +269,40 @@ export function HBarList({
   const max = Math.max(1, ...data.map((d) => d.value));
   if (data.length === 0) {
     return (
-      <div className="flex h-28 items-center justify-center rounded-xl border border-dashed border-slate-800 p-4 text-center text-xs text-slate-500">
+      <div className="flex h-28 items-center justify-center rounded-xl border border-dashed border-slate-200 dark:border-slate-800 p-4 text-center text-xs text-slate-400">
         {empty ?? '—'}
       </div>
     );
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3.5 select-none">
       {data.map((d, i) => {
-        const pct = Math.min(100, Math.max(3, (d.value / max) * 100));
+        const pct = Math.min(100, Math.max(4, (d.value / max) * 100));
         return (
-          <div key={d.label} className="group flex flex-col gap-1">
+          <div key={d.label} className="group flex flex-col gap-1.5">
             <div className="flex items-center justify-between text-xs">
-              <span className="flex items-center gap-1.5 font-medium text-slate-300 group-hover:text-white transition-colors truncate max-w-[65%]">
-                <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded bg-slate-800 text-[10px] font-bold text-slate-400">
+              <span className="flex items-center gap-2 font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors truncate max-w-[65%]">
+                <span className="inline-flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-md bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-400">
                   {i + 1}
                 </span>
                 <span className="truncate" title={d.label}>
                   {d.label}
                 </span>
               </span>
-              <span className="tabular-nums font-semibold text-slate-200">
+              <span className="tabular-nums font-black text-slate-900 dark:text-slate-100">
                 {format(d.value)}
                 {d.sub ? <span className="ml-1 text-[11px] font-normal text-slate-400">· {d.sub}</span> : ''}
               </span>
             </div>
 
-            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800/80 p-0.5">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800/80 p-0.5 border border-slate-200/50 dark:border-slate-800">
               <div
-                className="h-full rounded-full transition-all duration-500 group-hover:brightness-125"
+                className="h-full rounded-full transition-all duration-500 group-hover:brightness-110"
                 style={{
                   width: `${pct}%`,
-                  background: `linear-gradient(90deg, ${color}99 0%, ${color} 100%)`,
-                  boxShadow: `0 0 8px ${color}60`,
+                  background: `linear-gradient(90deg, ${color}cc 0%, ${color} 100%)`,
+                  boxShadow: `0 0 8px ${color}40`,
                 }}
               />
             </div>
@@ -299,7 +347,7 @@ export function Sparkline({
   const areaD = `${pathD} L ${lastPt[0]},${height} L ${firstPt[0]},${height} Z`;
 
   return (
-    <svg width={width} height={height} className="overflow-visible">
+    <svg width={width} height={height} className="overflow-visible select-none">
       <defs>
         <linearGradient id={`spark-grad-${chartId}`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={color} stopOpacity="0.35" />
@@ -307,7 +355,7 @@ export function Sparkline({
         </linearGradient>
       </defs>
       <path d={areaD} fill={`url(#spark-grad-${chartId})`} />
-      <path d={pathD} fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      <path d={pathD} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       <circle cx={parseFloat(lastPt[0])} cy={parseFloat(lastPt[1])} r="2.5" fill={color} className="animate-pulse" />
     </svg>
   );
@@ -327,7 +375,7 @@ export function PipelineFunnel({
   const defaultColors = ['#6366f1', '#38bdf8', '#a855f7', '#f59e0b', '#10b981', '#f43f5e'];
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3.5 select-none">
       {stages.map((s, idx) => {
         const stageColor = s.color || defaultColors[idx % defaultColors.length];
         const widthPct = Math.min(100, Math.max(12, (s.value / maxVal) * 100));
@@ -336,26 +384,28 @@ export function PipelineFunnel({
         return (
           <div key={s.name} className="group flex flex-col gap-1.5">
             <div className="flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 min-w-0">
                 <span
-                  className="h-2 w-2 rounded-full"
-                  style={{ backgroundColor: stageColor, boxShadow: `0 0 6px ${stageColor}` }}
+                  className="h-2.5 w-2.5 rounded-full shrink-0 shadow-xs"
+                  style={{ backgroundColor: stageColor }}
                 />
-                <span className="font-semibold text-slate-200 group-hover:text-white transition-colors">{s.name}</span>
-                <span className="rounded bg-slate-800/80 px-1.5 py-0.5 text-[10px] font-bold text-slate-400">
+                <span className="font-bold text-slate-800 dark:text-slate-200 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors truncate">
+                  {s.name}
+                </span>
+                <span className="rounded-md bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 text-[10px] font-bold text-slate-500 dark:text-slate-400 shrink-0">
                   {s.count} deals ({dealPct}%)
                 </span>
               </div>
-              <span className="tabular-nums font-bold text-emerald-400">{format(s.value)}</span>
+              <span className="tabular-nums font-black text-slate-900 dark:text-emerald-400 shrink-0">{format(s.value)}</span>
             </div>
 
-            <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-slate-800/80 p-0.5">
+            <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800/80 p-0.5 border border-slate-200/60 dark:border-slate-800">
               <div
-                className="h-full rounded-full transition-all duration-500 group-hover:brightness-125"
+                className="h-full rounded-full transition-all duration-500 group-hover:brightness-110"
                 style={{
                   width: `${widthPct}%`,
-                  background: `linear-gradient(90deg, ${stageColor}99 0%, ${stageColor} 100%)`,
-                  boxShadow: `0 0 8px ${stageColor}50`,
+                  background: `linear-gradient(90deg, ${stageColor}cc 0%, ${stageColor} 100%)`,
+                  boxShadow: `0 0 10px ${stageColor}40`,
                 }}
               />
             </div>
@@ -365,4 +415,5 @@ export function PipelineFunnel({
     </div>
   );
 }
+
 

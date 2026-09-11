@@ -78,10 +78,10 @@ function SearchResults() {
   });
 
   return (
-    <DashboardTemplate title="page.search">
-      <div className="mb-4 flex items-center gap-2 text-xs text-slate-400">
-        <Search className="h-4 w-4 text-brand-400" />
-        <span>Search Query: <strong className="text-white">&ldquo;{q}&rdquo;</strong></span>
+    <DashboardTemplate title="Search Results">
+      <div className="mb-4 flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+        <Search className="h-4 w-4 text-brand-600 dark:text-brand-400" />
+        <span>Search Query: <strong className="text-slate-900 dark:text-white">&ldquo;{q}&rdquo;</strong></span>
       </div>
 
       {res.isLoading ? (
@@ -92,143 +92,92 @@ function SearchResults() {
         <div className="space-y-6">
           <Section
             title="Deals"
-            icon={<Briefcase className="h-4 w-4 text-brand-400" />}
+            icon={<Briefcase className="h-4 w-4 text-brand-500" />}
             empty="No matching deals found"
             count={res.data?.deals.length ?? 0}
           >
             {res.data?.deals.map((d) => (
-              <Link
-                key={d.id}
-                href="/deals"
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-800/40 transition group"
-              >
-                <div>
-                  <span className="font-semibold text-white group-hover:text-brand-300 transition">{d.title}</span>
-                  {d.company && (
-                    <span className="text-xs text-slate-400 block">{d.company}</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge tone="blue">{d.status}</Badge>
-                  <ChevronRight className="h-4 w-4 text-slate-600 group-hover:text-slate-300 transition" />
-                </div>
-              </Link>
+              <ResultLink key={d.id} href="/deals" title={d.title} subtitle={d.company} status={d.status} />
             ))}
           </Section>
 
           <Section
             title="Contacts"
-            icon={<Users className="h-4 w-4 text-sky-400" />}
+            icon={<Users className="h-4 w-4 text-blue-500" />}
             empty="No matching contacts found"
             count={res.data?.contacts.length ?? 0}
           >
             {res.data?.contacts.map((c) => (
-              <Link
-                key={c.id}
-                href="/contacts"
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-800/40 transition group"
-              >
-                <div>
-                  <span className="font-semibold text-white group-hover:text-brand-300 transition">
-                    {c.firstName} {c.lastName}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  {c.email && (
-                    <span className="flex items-center gap-1 text-xs text-slate-400">
-                      <Mail className="h-3 w-3 text-slate-500" />
-                      <span>{c.email}</span>
-                    </span>
-                  )}
-                  <ChevronRight className="h-4 w-4 text-slate-600 group-hover:text-slate-300 transition" />
-                </div>
-              </Link>
+              <ResultLink key={c.id} href="/contacts" title={`${c.firstName} ${c.lastName}`} subtitle={c.email} />
             ))}
           </Section>
 
           <Section
             title="Companies"
-            icon={<Building2 className="h-4 w-4 text-emerald-400" />}
+            icon={<Building2 className="h-4 w-4 text-purple-500" />}
             empty="No matching companies found"
             count={res.data?.companies.length ?? 0}
           >
             {res.data?.companies.map((c) => (
-              <Link
-                key={c.id}
-                href="/companies"
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-800/40 transition group"
-              >
-                <div>
-                  <span className="font-semibold text-white group-hover:text-brand-300 transition">{c.name}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  {c.domain && (
-                    <span className="flex items-center gap-1 text-xs text-slate-400">
-                      <Globe className="h-3 w-3 text-slate-500" />
-                      <span>{c.domain}</span>
-                    </span>
-                  )}
-                  <ChevronRight className="h-4 w-4 text-slate-600 group-hover:text-slate-300 transition" />
-                </div>
-              </Link>
+              <ResultLink key={c.id} href="/companies" title={c.name} subtitle={c.domain} />
             ))}
           </Section>
 
-            <Section title="Leads" icon={<Users className="h-4 w-4 text-cyan-400" />} empty="No matching leads found" count={res.data?.leads.length ?? 0}>
+            <Section title="Leads" icon={<Users className="h-4 w-4 text-sky-500" />} empty="No matching leads found" count={res.data?.leads.length ?? 0}>
               {res.data?.leads.map((l) => (
                 <ResultLink key={l.id} href="/leads" title={`${l.firstName} ${l.lastName}`} subtitle={l.companyName} status={l.status} />
               ))}
             </Section>
 
-            <Section title="Tasks" icon={<CheckSquare className="h-4 w-4 text-emerald-400" />} empty="No matching tasks found" count={res.data?.tasks.length ?? 0}>
+            <Section title="Tasks" icon={<CheckSquare className="h-4 w-4 text-emerald-500" />} empty="No matching tasks found" count={res.data?.tasks.length ?? 0}>
               {res.data?.tasks.map((task) => (
                 <ResultLink key={task.id} href="/tasks" title={task.title} subtitle={task.priority} status={task.status} />
               ))}
             </Section>
 
-            <Section title="Tickets" icon={<LifeBuoy className="h-4 w-4 text-amber-400" />} empty="No matching tickets found" count={res.data?.tickets.length ?? 0}>
+            <Section title="Support Tickets" icon={<LifeBuoy className="h-4 w-4 text-amber-500" />} empty="No matching tickets found" count={res.data?.tickets.length ?? 0}>
               {res.data?.tickets.map((ticket) => (
                 <ResultLink key={ticket.id} href="/tickets" title={`#${ticket.number} - ${ticket.subject}`} subtitle={ticket.priority} status={ticket.status} />
               ))}
             </Section>
 
-            <Section title="Invoices" icon={<Receipt className="h-4 w-4 text-rose-400" />} empty="No matching invoices found" count={res.data?.invoices.length ?? 0}>
+            <Section title="Invoices" icon={<Receipt className="h-4 w-4 text-rose-500" />} empty="No matching invoices found" count={res.data?.invoices.length ?? 0}>
               {res.data?.invoices.map((invoice) => (
                 <ResultLink key={invoice.id} href="/invoices" title={invoice.number || 'Draft invoice'} subtitle={invoice.customerName} status={invoice.status} />
               ))}
             </Section>
 
-            <Section title="Quotes" icon={<FileSpreadsheet className="h-4 w-4 text-indigo-400" />} empty="No matching quotes found" count={res.data?.quotes.length ?? 0}>
+            <Section title="Quotes" icon={<FileSpreadsheet className="h-4 w-4 text-indigo-500" />} empty="No matching quotes found" count={res.data?.quotes.length ?? 0}>
               {res.data?.quotes.map((quote) => (
                 <ResultLink key={quote.id} href="/quotes" title={quote.number || 'Draft quote'} subtitle={quote.customerName} status={quote.status} />
               ))}
             </Section>
 
-            <Section title="Products" icon={<Package className="h-4 w-4 text-violet-400" />} empty="No matching products found" count={res.data?.products.length ?? 0}>
+            <Section title="Products" icon={<Package className="h-4 w-4 text-violet-500" />} empty="No matching products found" count={res.data?.products.length ?? 0}>
               {res.data?.products.map((product) => (
                 <ResultLink key={product.id} href="/products" title={product.name} subtitle={product.sku} status={product.active ? 'Active' : 'Inactive'} />
               ))}
             </Section>
 
-            <Section title="Meetings" icon={<CalendarDays className="h-4 w-4 text-orange-400" />} empty="No matching meetings found" count={res.data?.meetings.length ?? 0}>
+            <Section title="Meetings" icon={<CalendarDays className="h-4 w-4 text-orange-500" />} empty="No matching meetings found" count={res.data?.meetings.length ?? 0}>
               {res.data?.meetings.map((meeting) => (
                 <ResultLink key={meeting.id} href="/meetings" title={meeting.title} subtitle={meeting.location || new Date(meeting.startsAt).toLocaleString()} />
               ))}
             </Section>
 
-            <Section title="Brands" icon={<Tags className="h-4 w-4 text-pink-400" />} empty="No matching brands found" count={res.data?.brands.length ?? 0}>
+            <Section title="Brands" icon={<Tags className="h-4 w-4 text-pink-500" />} empty="No matching brands found" count={res.data?.brands.length ?? 0}>
               {res.data?.brands.map((brand) => (
                 <ResultLink key={brand.id} href="/brands" title={brand.name} subtitle={brand.sector || brand.niche} />
               ))}
             </Section>
 
-            <Section title="Competitors" icon={<Swords className="h-4 w-4 text-red-400" />} empty="No matching competitors found" count={res.data?.competitors.length ?? 0}>
+            <Section title="Competitors" icon={<Swords className="h-4 w-4 text-rose-500" />} empty="No matching competitors found" count={res.data?.competitors.length ?? 0}>
               {res.data?.competitors.map((competitor) => (
                 <ResultLink key={competitor.id} href="/brands" title={competitor.name} subtitle={competitor.domain} />
               ))}
             </Section>
 
-            <Section title="Users" icon={<UserRound className="h-4 w-4 text-slate-400" />} empty="No matching users found" count={res.data?.users.length ?? 0}>
+            <Section title="Team Members" icon={<UserRound className="h-4 w-4 text-slate-500" />} empty="No matching users found" count={res.data?.users.length ?? 0}>
               {res.data?.users.map((member) => (
                 <ResultLink key={member.id} href="/users" title={`${member.firstName} ${member.lastName}`} subtitle={member.email} status={member.isActive ? 'Active' : 'Inactive'} />
               ))}
@@ -253,15 +202,15 @@ function ResultLink({
   return (
     <Link
       href={href}
-      className="flex items-center justify-between gap-3 rounded-xl p-3 transition hover:bg-slate-800/40 group"
+      className="flex items-center justify-between gap-3 rounded-xl p-3 transition hover:bg-slate-100 dark:hover:bg-slate-800/60 group"
     >
       <div className="min-w-0">
-        <span className="block truncate font-semibold text-white group-hover:text-brand-300 transition">{title}</span>
-        {subtitle && <span className="block truncate text-xs text-slate-400">{subtitle}</span>}
+        <span className="block truncate font-semibold text-slate-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-300 transition">{title}</span>
+        {subtitle && <span className="block truncate text-xs text-slate-500 dark:text-slate-400">{subtitle}</span>}
       </div>
       <div className="flex shrink-0 items-center gap-2">
-        {status && <Badge tone="blue">{status}</Badge>}
-        <ChevronRight className="h-4 w-4 text-slate-600 group-hover:text-slate-300 transition" />
+        {status && <Badge tone="indigo">{status}</Badge>}
+        <ChevronRight className="h-4 w-4 text-slate-400 dark:text-slate-600 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition" />
       </div>
     </Link>
   );
@@ -284,17 +233,17 @@ function Section({
   const hasItems = arr.some(Boolean) && arr.flat().filter(Boolean).length > 0;
   return (
     <Card className="p-5 space-y-3">
-      <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+      <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-3">
         <div className="flex items-center gap-2">
           {icon}
-          <h3 className="text-sm font-bold text-white tracking-tight">{title}</h3>
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">{title}</h3>
         </div>
-        <Badge tone={count > 0 ? 'indigo' : 'gray'}>{count} Result</Badge>
+        <Badge tone={count > 0 ? 'indigo' : 'gray'}>{count} Results</Badge>
       </div>
       {hasItems ? (
         <div className="space-y-1">{children}</div>
       ) : (
-        <p className="py-4 text-center text-xs text-slate-500">{empty}</p>
+        <p className="py-4 text-center text-xs text-slate-400 dark:text-slate-500">{empty}</p>
       )}
     </Card>
   );

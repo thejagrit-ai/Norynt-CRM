@@ -16,27 +16,68 @@ import {
   User,
   ChevronDown,
   Check,
-  Sparkles,
-  ExternalLink,
-  Shield,
+  Kanban,
+  Users,
+  UserCheck,
+  Building2,
+  CheckSquare,
+  LifeBuoy,
+  Receipt,
+  FileSpreadsheet,
+  Package,
+  Calendar,
+  Tags,
+  UserCog,
+  PanelLeftClose,
+  PanelLeftOpen,
+  X,
+  ChevronRight,
+  ChevronLeft,
 } from 'lucide-react';
+import { api, unwrap } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useI18n } from '@/lib/i18n';
 import { useTheme } from '@/lib/theme';
+import { useSidebar } from '@/lib/sidebar';
 import { Button } from '../atoms/Button';
-import { CommandPalette } from '../molecules/CommandPalette';
+import { Spinner } from '../atoms/Spinner';
+import { Badge } from '../atoms/Badge';
 import { UniversalQuickCreateModal } from '../molecules/UniversalQuickCreateModal';
+
+interface SearchResults {
+  query: string;
+  deals: { id: string; title: string; company: string | null; value?: string | number | null; status: string }[];
+  contacts: { id: string; firstName: string; lastName: string; email: string | null }[];
+  companies: { id: string; name: string; domain: string | null }[];
+  tasks: { id: string; title: string; status: string; priority: string }[];
+  tickets: { id: string; number: string; subject: string; priority: string }[];
+  leads: { id: string; firstName: string; lastName: string; companyName: string | null }[];
+  invoices?: { id: string; number: string | null; customerName: string; status: string }[];
+  quotes?: { id: string; number: string | null; customerName: string; status: string }[];
+  products?: { id: string; name: string; sku: string | null; active: boolean }[];
+  meetings?: { id: string; title: string; startsAt: string; location: string | null }[];
+  brands?: { id: string; name: string; sector: string | null }[];
+  users?: { id: string; firstName: string; lastName: string; email: string }[];
+}
 
 export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const { user, logout } = useAuth();
   const { t, lang, setLang, languages } = useI18n();
   const { theme, toggleTheme } = useTheme();
+  const { isCollapsed, toggleCollapse, openMobile } = useSidebar();
   const router = useRouter();
 
-  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [quickCreateOpen, setQuickCreateOpen] = useState(false);
   const [quickCreateType, setQuickCreateType] = useState('deal');
+
+  // Inline Search State
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchResults, setSearchResults] = useState<SearchResults | null>(null);
+  const [searchDropdownOpen, setSearchDropdownOpen] = useState(false);
+
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Dropdown states
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -59,32 +100,70 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
       if (langMenuRef.current && !langMenuRef.current.contains(e.target as Node)) {
         setLangMenuOpen(false);
       }
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setSearchDropdownOpen(false);
+      }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Handle keyboard shortcut for command palette (Ctrl+K or ⌘K)
+  // Keyboard shortcut Ctrl+K or ⌘K focuses topbar search input directly
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        setCommandPaletteOpen((prev) => !prev);
+        searchInputRef.current?.focus();
+        setSearchDropdownOpen(true);
+      }
+      if (e.key === 'Escape') {
+        setSearchDropdownOpen(false);
       }
     }
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const handleOpenQuickCreate = (type: string) => {
-    setQuickCreateType(type);
-    setQuickCreateOpen(true);
-  };
+  // Debounced search query fetching
+  useEffect(() => {
+    if (!searchQuery.trim() || searchQuery.trim().length < 2) {
+      setSearchResults(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setSearchLoading(true);
+      try {
+        const res = await api.get('/search', { params: { q: searchQuery.trim() } });
+        setSearchResults(unwrap<SearchResults>(res.data));
+        setSearchDropdownOpen(true);
+      } catch {
+        setSearchResults(null);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 150);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const query = searchQuery.trim();
-    router.push(query ? `/search?q=${encodeURIComponent(query)}` : '/search');
+    if (!query) return;
+    setSearchDropdownOpen(false);
+    router.push(`/search?q=${encodeURIComponent(query)}`);
+  };
+
+  const navigateTo = (path: string) => {
+    setSearchDropdownOpen(false);
+    setSearchQuery('');
+    router.push(path);
+  };
+
+  const handleOpenQuickCreate = (type: string) => {
+    setQuickCreateType(type);
+    setQuickCreateOpen(true);
   };
 
   // Dynamic user data
@@ -107,36 +186,279 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
   return (
     <>
       <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b border-slate-200/80 bg-white/90 px-4 sm:px-6 backdrop-blur-xl transition-colors dark:border-slate-800/80 dark:bg-slate-950/90">
-        {/* Left: Mobile Menu Toggle & Search Bar */}
+        {/* Left: Global Sidebar Toggle & Inline Search Bar */}
         <div className="flex items-center gap-3">
-          {onMenuClick && (
-            <button
-              type="button"
-              onClick={onMenuClick}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 lg:hidden transition dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
-              aria-label="Open navigation menu"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-          )}
-
-          {/* Search Bar */}
-          <form
-            onSubmit={handleSearchSubmit}
-            className="group flex items-center gap-2.5 w-44 sm:w-72 md:w-80 rounded-xl border border-slate-200 bg-slate-50/80 py-1.5 px-3 text-xs sm:text-sm text-slate-500 focus-within:border-brand-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-brand-500/10 transition shadow-xs dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-400 dark:focus-within:border-brand-500 dark:focus-within:bg-slate-900"
+          {/* Mobile Drawer Open Button (Hidden on Desktop to avoid duplicate toggles) */}
+          <button
+            type="button"
+            onClick={() => {
+              if (onMenuClick) onMenuClick();
+              else openMobile();
+            }}
+            className="flex lg:hidden h-9 w-9 items-center justify-center rounded-xl border border-slate-200/80 bg-white text-slate-600 hover:border-brand-500/40 hover:bg-brand-50/60 hover:text-brand-600 transition-all shadow-xs dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-brand-500/40 dark:hover:bg-slate-800 dark:hover:text-brand-300"
+            title="Open Mobile Navigation Drawer"
+            aria-label="Open Mobile Navigation Drawer"
           >
-            <Search className="h-4 w-4 text-slate-400 group-hover:text-brand-500 transition-colors shrink-0 dark:text-slate-500 dark:group-hover:text-brand-400" />
-            <input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t('topbar.search')}
-              aria-label="Search CRM"
-              className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-slate-500 dark:placeholder:text-slate-400"
-            />
-            <kbd className="hidden sm:inline-flex items-center rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-bold text-slate-500 shadow-xs dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
-              Enter
-            </kbd>
-          </form>
+            <Menu className="h-5 w-5 text-slate-600 dark:text-slate-300" />
+          </button>
+
+          {/* Live Inline Search Bar & Autocomplete Popover */}
+          <div className="relative" ref={searchContainerRef}>
+            <form
+              onSubmit={handleSearchSubmit}
+              className="group flex items-center gap-2.5 w-48 sm:w-72 md:w-80 rounded-xl border border-slate-200 bg-slate-50/90 py-1.5 px-3 text-xs sm:text-sm text-slate-500 focus-within:border-brand-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-brand-500/10 transition shadow-xs dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-400 dark:focus-within:border-brand-500 dark:focus-within:bg-slate-900"
+            >
+              <Search className="h-4 w-4 text-slate-400 group-hover:text-brand-500 transition-colors shrink-0 dark:text-slate-500 dark:group-hover:text-brand-400" />
+              <input
+                ref={searchInputRef}
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setSearchDropdownOpen(true);
+                }}
+                onFocus={() => {
+                  if (searchQuery.trim().length >= 2) setSearchDropdownOpen(true);
+                }}
+                placeholder={t('topbar.search') || 'Search anything...'}
+                aria-label="Search CRM"
+                className="min-w-0 flex-1 bg-transparent outline-none text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
+              />
+              {searchLoading && <Spinner size="sm" />}
+              {searchQuery && !searchLoading && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setSearchResults(null);
+                    setSearchDropdownOpen(false);
+                  }}
+                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+              {!searchQuery && (
+                <kbd className="hidden sm:inline-flex items-center rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-mono font-bold text-slate-400 shadow-xs dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+                  ⌘K
+                </kbd>
+              )}
+            </form>
+
+            {/* Live Inline Search Autocomplete Dropdown */}
+            {searchDropdownOpen && searchQuery.trim().length >= 2 && (
+              <div className="absolute left-0 top-full mt-2 w-80 sm:w-96 md:w-[440px] max-h-[75vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900 z-50 animate-in fade-in slide-in-from-top-2 custom-scrollbar">
+                {searchResults && (
+                  <div className="space-y-3">
+                    {/* DEALS */}
+                    {searchResults.deals && searchResults.deals.length > 0 && (
+                      <div>
+                        <p className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Deals</p>
+                        <div className="space-y-1">
+                          {searchResults.deals.map((d) => (
+                            <button
+                              key={d.id}
+                              type="button"
+                              onClick={() => navigateTo('/deals')}
+                              className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800/60 transition text-xs group"
+                            >
+                              <div className="flex items-center gap-2 min-w-0">
+                                <Kanban className="h-3.5 w-3.5 text-brand-500 shrink-0" />
+                                <span className="font-semibold text-slate-900 dark:text-slate-200 group-hover:text-brand-600 dark:group-hover:text-brand-400 truncate">{d.title}</span>
+                              </div>
+                              <Badge tone="indigo">{d.status}</Badge>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* CONTACTS */}
+                    {searchResults.contacts && searchResults.contacts.length > 0 && (
+                      <div>
+                        <p className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Contacts</p>
+                        <div className="space-y-1">
+                          {searchResults.contacts.map((c) => (
+                            <button
+                              key={c.id}
+                              type="button"
+                              onClick={() => navigateTo('/contacts')}
+                              className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800/60 transition text-xs group"
+                            >
+                              <div className="flex items-center gap-2 min-w-0">
+                                <Users className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+                                <span className="font-semibold text-slate-900 dark:text-slate-200 group-hover:text-brand-600 dark:group-hover:text-brand-400 truncate">
+                                  {c.firstName} {c.lastName}
+                                </span>
+                              </div>
+                              {c.email && <span className="text-[11px] text-slate-400 truncate shrink-0">{c.email}</span>}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* LEADS */}
+                    {searchResults.leads && searchResults.leads.length > 0 && (
+                      <div>
+                        <p className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Leads</p>
+                        <div className="space-y-1">
+                          {searchResults.leads.map((l) => (
+                            <button
+                              key={l.id}
+                              type="button"
+                              onClick={() => navigateTo('/leads')}
+                              className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800/60 transition text-xs group"
+                            >
+                              <div className="flex items-center gap-2 min-w-0">
+                                <UserCheck className="h-3.5 w-3.5 text-sky-500 shrink-0" />
+                                <span className="font-semibold text-slate-900 dark:text-slate-200 group-hover:text-brand-600 dark:group-hover:text-brand-400 truncate">
+                                  {l.firstName} {l.lastName}
+                                </span>
+                              </div>
+                              {l.companyName && <span className="text-[11px] text-slate-400 truncate shrink-0">({l.companyName})</span>}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* COMPANIES */}
+                    {searchResults.companies && searchResults.companies.length > 0 && (
+                      <div>
+                        <p className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Companies</p>
+                        <div className="space-y-1">
+                          {searchResults.companies.map((co) => (
+                            <button
+                              key={co.id}
+                              type="button"
+                              onClick={() => navigateTo('/companies')}
+                              className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800/60 transition text-xs group"
+                            >
+                              <div className="flex items-center gap-2 min-w-0">
+                                <Building2 className="h-3.5 w-3.5 text-purple-500 shrink-0" />
+                                <span className="font-semibold text-slate-900 dark:text-slate-200 group-hover:text-brand-600 dark:group-hover:text-brand-400 truncate">{co.name}</span>
+                              </div>
+                              {co.domain && <span className="text-[11px] text-slate-400 truncate shrink-0">{co.domain}</span>}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* TASKS */}
+                    {searchResults.tasks && searchResults.tasks.length > 0 && (
+                      <div>
+                        <p className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Tasks</p>
+                        <div className="space-y-1">
+                          {searchResults.tasks.map((tk) => (
+                            <button
+                              key={tk.id}
+                              type="button"
+                              onClick={() => navigateTo('/tasks')}
+                              className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800/60 transition text-xs group"
+                            >
+                              <div className="flex items-center gap-2 min-w-0">
+                                <CheckSquare className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                                <span className="font-semibold text-slate-900 dark:text-slate-200 group-hover:text-brand-600 dark:group-hover:text-brand-400 truncate">{tk.title}</span>
+                              </div>
+                              <Badge tone="gray">{tk.status}</Badge>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* TICKETS */}
+                    {searchResults.tickets && searchResults.tickets.length > 0 && (
+                      <div>
+                        <p className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Tickets</p>
+                        <div className="space-y-1">
+                          {searchResults.tickets.map((tkt) => (
+                            <button
+                              key={tkt.id}
+                              type="button"
+                              onClick={() => navigateTo('/tickets')}
+                              className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800/60 transition text-xs group"
+                            >
+                              <div className="flex items-center gap-2 min-w-0">
+                                <LifeBuoy className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                                <span className="font-semibold text-slate-900 dark:text-slate-200 group-hover:text-brand-600 dark:group-hover:text-brand-400 truncate">
+                                  #{tkt.number} — {tkt.subject}
+                                </span>
+                              </div>
+                              <Badge tone="amber">{tkt.priority}</Badge>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* INVOICES */}
+                    {searchResults.invoices && searchResults.invoices.length > 0 && (
+                      <div>
+                        <p className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Invoices</p>
+                        <div className="space-y-1">
+                          {searchResults.invoices.map((inv) => (
+                            <button
+                              key={inv.id}
+                              type="button"
+                              onClick={() => navigateTo('/invoices')}
+                              className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800/60 transition text-xs group"
+                            >
+                              <div className="flex items-center gap-2 min-w-0">
+                                <Receipt className="h-3.5 w-3.5 text-rose-500 shrink-0" />
+                                <span className="font-semibold text-slate-900 dark:text-slate-200 group-hover:text-brand-600 dark:group-hover:text-brand-400 truncate">
+                                  {inv.number || 'Invoice'} ({inv.customerName})
+                                </span>
+                              </div>
+                              <Badge tone="rose">{inv.status}</Badge>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* QUOTES */}
+                    {searchResults.quotes && searchResults.quotes.length > 0 && (
+                      <div>
+                        <p className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Quotes</p>
+                        <div className="space-y-1">
+                          {searchResults.quotes.map((q) => (
+                            <button
+                              key={q.id}
+                              type="button"
+                              onClick={() => navigateTo('/quotes')}
+                              className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800/60 transition text-xs group"
+                            >
+                              <div className="flex items-center gap-2 min-w-0">
+                                <FileSpreadsheet className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
+                                <span className="font-semibold text-slate-900 dark:text-slate-200 group-hover:text-brand-600 dark:group-hover:text-brand-400 truncate">
+                                  {q.number || 'Quote'} ({q.customerName})
+                                </span>
+                              </div>
+                              <Badge tone="indigo">{q.status}</Badge>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Footer / Full search link */}
+                <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                  <button
+                    type="button"
+                    onClick={() => navigateTo(`/search?q=${encodeURIComponent(searchQuery.trim())}`)}
+                    className="w-full text-left font-semibold text-brand-600 dark:text-brand-400 hover:underline flex items-center justify-between p-1 rounded-lg"
+                  >
+                    <span>See full results for &ldquo;{searchQuery}&rdquo;</span>
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right Header Controls */}
@@ -330,12 +652,6 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
         </div>
       </header>
 
-      <CommandPalette
-        isOpen={commandPaletteOpen}
-        onClose={() => setCommandPaletteOpen(false)}
-        onOpenQuickCreate={handleOpenQuickCreate}
-      />
-
       <UniversalQuickCreateModal
         isOpen={quickCreateOpen}
         initialType={quickCreateType}
@@ -344,3 +660,4 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
     </>
   );
 }
+

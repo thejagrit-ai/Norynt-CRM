@@ -77,13 +77,13 @@ export default function SupportPage() {
   const getCategoryIcon = (name: string) => {
     switch (name.toLowerCase()) {
       case 'getting started':
-        return <Rocket className="h-6 w-6 text-indigo-400" />;
+        return <Rocket className="h-6 w-6 text-brand-600 dark:text-indigo-400" />;
       case 'sales & pipelines':
-        return <Kanban className="h-6 w-6 text-emerald-400" />;
+        return <Kanban className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />;
       case 'billing & payments':
-        return <Receipt className="h-6 w-6 text-amber-400" />;
+        return <Receipt className="h-6 w-6 text-amber-600 dark:text-amber-400" />;
       default:
-        return <HelpCircle className="h-6 w-6 text-blue-400" />;
+        return <HelpCircle className="h-6 w-6 text-brand-500 dark:text-blue-400" />;
     }
   };
 
@@ -99,27 +99,31 @@ export default function SupportPage() {
         </Link>
       }
     >
-      {/* Hero Search */}
-      <div className="relative rounded-2xl bg-gradient-to-r from-indigo-950/60 via-slate-900/80 to-slate-950 p-8 border border-slate-800/80 mb-8 backdrop-blur-xl text-center">
-        <h2 className="text-2xl font-bold text-white mb-2">How can we assist you today?</h2>
-        <p className="text-slate-400 text-sm max-w-lg mx-auto mb-6">
+      {/* Hero Search Banner */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-500/10 via-indigo-500/5 to-purple-500/10 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-900/90 p-8 border border-brand-500/20 dark:border-slate-800 shadow-sm text-center mb-8 backdrop-blur-xl">
+        <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-brand-500/10 dark:bg-brand-500/10 rounded-full blur-3xl" />
+
+        <h2 className="relative text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">
+          How can we assist you today?
+        </h2>
+        <p className="relative text-slate-600 dark:text-slate-400 text-sm max-w-lg mx-auto mb-6 font-medium">
           Search across platform guides, integration tutorials, and CRM documentation.
         </p>
 
-        <div className="max-w-xl mx-auto relative">
-          <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+        <div className="relative max-w-xl mx-auto">
+          <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-400 dark:text-slate-500" />
           <input
             type="text"
             placeholder="Search keywords, e.g. pipeline stages, invoice payment, webhook HMAC…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-2xl border border-slate-700 bg-slate-950/90 pl-12 pr-4 py-3 text-sm text-white placeholder-slate-500 shadow-2xl focus:border-indigo-500 focus:outline-none"
+            className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 pl-12 pr-4 py-3 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 shadow-lg focus:border-brand-500 dark:focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none transition-all"
           />
         </div>
       </div>
 
       {/* Category Grid */}
-      <h3 className="text-base font-semibold text-white mb-4">Documentation Categories</h3>
+      <h3 className="text-base font-bold text-slate-900 dark:text-white mb-4">Documentation Categories</h3>
 
       {categories.isLoading ? (
         <div className="flex h-48 items-center justify-center">
@@ -130,24 +134,25 @@ export default function SupportPage() {
           {(categories.data || []).map((cat) => (
             <Card
               key={cat.id}
-              className="flex flex-col justify-between border-slate-800/80 bg-slate-900/60 p-6 backdrop-blur-xl transition hover:border-slate-700 hover:shadow-xl"
+              hoverable
+              className="flex flex-col justify-between p-6"
             >
               <div>
-                <div className="rounded-xl bg-slate-800/80 w-12 h-12 flex items-center justify-center mb-4">
+                <div className="rounded-xl bg-slate-100 dark:bg-slate-800/80 w-12 h-12 flex items-center justify-center mb-4">
                   {getCategoryIcon(cat.name)}
                 </div>
-                <h4 className="font-bold text-white text-lg mb-1">{cat.name}</h4>
-                <p className="text-xs text-slate-400 mb-4">{cat.description}</p>
+                <h4 className="font-bold text-slate-900 dark:text-white text-lg mb-1">{cat.name}</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">{cat.description}</p>
 
-                <div className="space-y-2 border-t border-slate-800/60 pt-3">
+                <div className="space-y-2 border-t border-slate-100 dark:border-slate-800/60 pt-3">
                   {(cat.articles || []).slice(0, 3).map((art) => (
                     <button
                       key={art.id}
                       onClick={() => openArticle(art.id)}
-                      className="w-full text-left flex items-center justify-between text-xs text-slate-300 hover:text-indigo-400 py-1 transition group"
+                      className="w-full text-left flex items-center justify-between text-xs text-slate-600 dark:text-slate-300 hover:text-brand-600 dark:hover:text-brand-400 py-1 transition group"
                     >
                       <span className="truncate pr-2">{art.title}</span>
-                      <ChevronRight className="h-3.5 w-3.5 text-slate-600 group-hover:text-indigo-400 shrink-0" />
+                      <ChevronRight className="h-3.5 w-3.5 text-slate-400 dark:text-slate-600 group-hover:text-brand-600 dark:group-hover:text-brand-400 shrink-0" />
                     </button>
                   ))}
                 </div>
@@ -158,7 +163,7 @@ export default function SupportPage() {
       )}
 
       {/* Articles List */}
-      <h3 className="text-base font-semibold text-white mb-4">
+      <h3 className="text-base font-bold text-slate-900 dark:text-white mb-4">
         {searchQuery ? `Search Results for "${searchQuery}"` : 'Recommended Articles & Guides'}
       </h3>
 
@@ -166,46 +171,47 @@ export default function SupportPage() {
         {(articles.data || []).map((art) => (
           <Card
             key={art.id}
+            hoverable
             onClick={() => openArticle(art.id)}
-            className="cursor-pointer border-slate-800/80 bg-slate-900/60 p-4 backdrop-blur-xl hover:border-indigo-500/40 transition flex items-center justify-between gap-4"
+            className="p-4 flex items-center justify-between gap-4"
           >
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-indigo-500/10 p-2 text-indigo-400">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="rounded-lg bg-brand-500/10 p-2.5 text-brand-600 dark:text-brand-400 shrink-0">
                 <FileText className="h-5 w-5" />
               </div>
-              <div>
-                <h4 className="font-semibold text-white text-sm">{art.title}</h4>
-                <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">{art.content}</p>
+              <div className="min-w-0">
+                <h4 className="font-semibold text-slate-900 dark:text-white text-sm truncate">{art.title}</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">{art.content}</p>
               </div>
             </div>
-            <ChevronRight className="h-4 w-4 text-slate-500 shrink-0" />
+            <ChevronRight className="h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0" />
           </Card>
         ))}
       </div>
 
       {/* Article Reader Modal */}
       {selectedArticle && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="w-full max-w-2xl rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl max-h-[85vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-2xl rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-2xl max-h-[85vh] overflow-y-auto custom-scrollbar">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
               <div>
                 <Badge tone="indigo">{selectedArticle.category?.name || 'Guide'}</Badge>
-                <h2 className="text-xl font-bold text-white mt-1.5">{selectedArticle.title}</h2>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white mt-1.5">{selectedArticle.title}</h2>
               </div>
               <button
                 onClick={() => setSelectedArticle(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="prose prose-invert max-w-none text-slate-300 text-sm leading-relaxed whitespace-pre-wrap">
+            <div className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed whitespace-pre-wrap">
               {selectedArticle.content}
             </div>
 
-            <div className="mt-8 flex items-center justify-between pt-4 border-t border-slate-800">
-              <span className="text-xs text-slate-500">
+            <div className="mt-8 flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+              <span className="text-xs text-slate-400 dark:text-slate-500">
                 Was this guide helpful? (Views: {selectedArticle.viewCount})
               </span>
               <Button tone="secondary" onClick={() => setSelectedArticle(null)}>
@@ -218,3 +224,4 @@ export default function SupportPage() {
     </DashboardTemplate>
   );
 }
+

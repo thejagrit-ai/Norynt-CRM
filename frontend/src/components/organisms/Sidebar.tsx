@@ -136,6 +136,24 @@ export function Sidebar({
     });
   }, []);
 
+  // Global keyboard shortcuts (Ctrl+\, Cmd+\, Ctrl+B) to toggle sidebar
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (
+        (e.metaKey || e.ctrlKey) &&
+        (e.key === '\\' || e.key.toLowerCase() === 'b')
+      ) {
+        const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+        if (tag !== 'input' && tag !== 'textarea') {
+          e.preventDefault();
+          toggleCollapse();
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [toggleCollapse]);
+
   // Filter groups and items by user permissions
   const filteredGroups = useMemo(() => {
     return NAVIGATION_CONFIG.groups
@@ -161,16 +179,15 @@ export function Sidebar({
           <button
             type="button"
             onClick={toggleCollapse}
-            title="Expand Sidebar"
+            title="Expand Sidebar (Ctrl+\)"
             aria-label="Expand Sidebar"
-            className="group flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 font-bold text-white shadow-md shadow-indigo-600/30 transition-all duration-150 hover:bg-indigo-500 hover:scale-105 select-none"
+            className="group flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900/90 border border-slate-800 text-slate-400 hover:border-brand-500/60 hover:bg-brand-600 hover:text-white shadow-sm transition-all duration-200 select-none"
           >
-            <span className="text-base font-extrabold tracking-wider group-hover:hidden">N</span>
-            <PanelLeftOpen className="hidden h-5 w-5 group-hover:block" />
+            <ChevronRight className="h-5 w-5 group-hover:scale-115 transition-transform" />
           </button>
         </div>
       ) : (
-        <div className="relative flex h-16 shrink-0 items-center justify-center px-4 border-b border-slate-800/80">
+        <div className="relative flex h-16 shrink-0 items-center justify-between px-4 border-b border-slate-800/80">
           <Link
             href="/"
             onClick={handleCloseMobile}
@@ -179,22 +196,22 @@ export function Sidebar({
             <Logo size={28} />
           </Link>
 
-          {/* Collapse Toggle Button (Desktop) */}
+          {/* Desktop Collapse Toggle Button */}
           <button
             type="button"
             onClick={toggleCollapse}
-            title="Collapse Sidebar"
+            title="Collapse Sidebar (Ctrl+\)"
             aria-label="Collapse Sidebar"
-            className="absolute right-3 hidden lg:flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
+            className="hidden lg:flex h-8 w-8 items-center justify-center rounded-lg border border-slate-800/90 bg-slate-900/80 text-slate-400 hover:border-brand-500/50 hover:bg-brand-600 hover:text-white transition-all shadow-xs group"
           >
-            <PanelLeftClose className="h-4 w-4" />
+            <ChevronLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
           </button>
 
           {/* Mobile Drawer Close Button */}
           <button
             type="button"
             onClick={handleCloseMobile}
-            className="absolute right-3 flex lg:hidden h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
+            className="flex lg:hidden h-8 w-8 items-center justify-center rounded-lg border border-slate-800/80 bg-slate-900/80 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
