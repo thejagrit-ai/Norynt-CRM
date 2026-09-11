@@ -36,6 +36,7 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [quickCreateOpen, setQuickCreateOpen] = useState(false);
   const [quickCreateType, setQuickCreateType] = useState('deal');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Dropdown states
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -80,6 +81,12 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
     setQuickCreateOpen(true);
   };
 
+  const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const query = searchQuery.trim();
+    router.push(query ? `/search?q=${encodeURIComponent(query)}` : '/search');
+  };
+
   // Dynamic user data
   const initials = user?.firstName
     ? `${user.firstName[0]}${user.lastName ? user.lastName[0] : ''}`.toUpperCase()
@@ -113,18 +120,23 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
             </button>
           )}
 
-          {/* Search Bar with Shortcut Indicator */}
-          <button
-            type="button"
-            onClick={() => setCommandPaletteOpen(true)}
-            className="group flex items-center gap-2.5 w-44 sm:w-72 md:w-80 rounded-xl border border-slate-200 bg-slate-50/80 py-1.5 px-3 text-xs sm:text-sm text-slate-500 hover:border-slate-300 hover:bg-white hover:text-slate-900 transition shadow-xs dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-900 dark:hover:text-slate-200 text-left"
+          {/* Search Bar */}
+          <form
+            onSubmit={handleSearchSubmit}
+            className="group flex items-center gap-2.5 w-44 sm:w-72 md:w-80 rounded-xl border border-slate-200 bg-slate-50/80 py-1.5 px-3 text-xs sm:text-sm text-slate-500 focus-within:border-brand-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-brand-500/10 transition shadow-xs dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-400 dark:focus-within:border-brand-500 dark:focus-within:bg-slate-900"
           >
             <Search className="h-4 w-4 text-slate-400 group-hover:text-brand-500 transition-colors shrink-0 dark:text-slate-500 dark:group-hover:text-brand-400" />
-            <span className="flex-1 truncate font-medium">{t('topbar.search')}</span>
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={t('topbar.search')}
+              aria-label="Search CRM"
+              className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-slate-500 dark:placeholder:text-slate-400"
+            />
             <kbd className="hidden sm:inline-flex items-center rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-bold text-slate-500 shadow-xs dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
-              ⌘K
+              Enter
             </kbd>
-          </button>
+          </form>
         </div>
 
         {/* Right Header Controls */}
