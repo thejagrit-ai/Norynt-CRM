@@ -118,4 +118,13 @@ export class UsersRepository {
       },
     });
   }
+
+  async updatePassword(id: string, passwordHash: string) {
+    await this.prisma.refreshToken.deleteMany({ where: { userId: id } });
+    return this.prisma.user.update({
+      where: { id },
+      data: { passwordHash },
+      select: userSelect,
+    });
+  }
 }

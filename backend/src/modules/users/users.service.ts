@@ -157,6 +157,22 @@ export class UsersService {
     return this.setStatus(id, false, actor);
   }
 
+  async resetPassword(
+    id: string,
+    newPassword?: string,
+    actor?: AuthenticatedUser,
+  ): Promise<UserView & { temporaryPassword?: string }> {
+    await this.findOne(id);
+    const pwd = newPassword || `Reset!${Math.random().toString(36).slice(-8)}`;
+    const passwordHash = await bcrypt.hash(pwd, this.bcryptCost);
+    const user = await this.usersRepo.updatePassword(id, passwordHash);
+    this.logger.log(`user.resetPassword by=${actor?.id ?? 'system'} target=${id}`);
+    return {
+      ...this.toView(user as UserRow),
+      ...(!newPassword ? { temporaryPassword: pwd } : {}),
+    };
+  }
+
   // --- Yardımcılar ---
 
   private async assertRolesExist(roleIds: string[]): Promise<void> {

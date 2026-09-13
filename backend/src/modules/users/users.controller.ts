@@ -81,6 +81,28 @@ export class UsersController {
     return this.usersService.setStatus(id, dto.isActive, actor);
   }
 
+  @Patch(':id/block')
+  @Permissions(PERMISSIONS.USER.UPDATE)
+  @ApiOperation({ summary: '1-tık kullanıcı engelini aç/kapat (block/unblock)' })
+  blockUser(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body('isBlocked') isBlocked: boolean,
+    @CurrentUser() actor: AuthenticatedUser,
+  ) {
+    return this.usersService.setStatus(id, !Boolean(isBlocked), actor);
+  }
+
+  @Post(':id/reset-password')
+  @Permissions(PERMISSIONS.USER.UPDATE)
+  @ApiOperation({ summary: 'Kullanıcı şifresini zorunlu sıfırla' })
+  resetPassword(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body('password') password?: string,
+    @CurrentUser() actor?: AuthenticatedUser,
+  ) {
+    return this.usersService.resetPassword(id, password, actor);
+  }
+
   @Delete(':id')
   @Permissions(PERMISSIONS.USER.DELETE)
   @ApiOperation({ summary: 'Kullanıcıyı pasifleştir (soft delete)' })
