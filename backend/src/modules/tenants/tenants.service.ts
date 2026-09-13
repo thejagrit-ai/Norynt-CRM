@@ -44,4 +44,18 @@ export class TenantsService {
     );
     return updated;
   }
+
+  async toggleStatus(
+    id: string,
+    isActive: boolean,
+    actor: AuthenticatedUser,
+  ) {
+    const tenant = await this.repo.findById(id);
+    if (!tenant) throw new NotFoundException('Tenant bulunamadı');
+    const updated = await this.repo.toggleStatus(id, isActive);
+    this.logger.log(
+      `tenant.toggleStatus by=${actor.id} tenant=${id} isActive=${isActive}`,
+    );
+    return updated;
+  }
 }

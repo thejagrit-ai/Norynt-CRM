@@ -6,6 +6,7 @@ import {
   Get,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -37,6 +38,17 @@ export class TenantsController {
     @CurrentUser() actor: AuthenticatedUser,
   ) {
     return this.service.create(dto, actor);
+  }
+
+  @Patch(':id/status')
+  @Permissions(PERMISSIONS.PLATFORM.TENANT_MANAGE)
+  @ApiOperation({ summary: "Tenant aktiflik durumunu güncelle (freeze/activate)" })
+  toggleStatus(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body('isActive') isActive: boolean,
+    @CurrentUser() actor: AuthenticatedUser,
+  ) {
+    return this.service.toggleStatus(id, Boolean(isActive), actor);
   }
 
   @Post(':id/assign-user')

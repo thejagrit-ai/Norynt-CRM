@@ -35,4 +35,11 @@ export class TenantsRepository {
       select: { id: true, email: true, tenantId: true },
     });
   }
+
+  toggleStatus(id: string, isActive: boolean) {
+    return this.prisma.tenant.update({
+      where: { id },
+      data: { isActive },
+    });
+  }
 }
