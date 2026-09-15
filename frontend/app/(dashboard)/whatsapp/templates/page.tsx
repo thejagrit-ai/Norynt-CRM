@@ -22,6 +22,7 @@ import { Button } from '@/components/atoms/Button';
 import { Badge } from '@/components/atoms/Badge';
 import { Spinner } from '@/components/atoms/Spinner';
 import { Modal } from '@/components/molecules/Modal';
+import { WhatsAppNavHeader } from '@/components/molecules/WhatsAppNavHeader';
 
 interface TemplateButton {
   type: 'QUICK_REPLY' | 'URL' | 'PHONE_NUMBER';
@@ -200,11 +201,13 @@ export default function WhatsAppTemplatesPage() {
           onClick={openCreateModal}
           leftIcon={<Plus className="h-4 w-4" />}
           tone="primary"
+          className="bg-emerald-600 hover:bg-emerald-500 font-bold text-white shadow-sm"
         >
           New Template
         </Button>
       }
     >
+      <WhatsAppNavHeader />
       {templates.isLoading ? (
         <div className="flex h-64 items-center justify-center">
           <Spinner size="lg" />

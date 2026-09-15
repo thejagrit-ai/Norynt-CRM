@@ -23,6 +23,7 @@ import { Button } from '@/components/atoms/Button';
 import { Badge } from '@/components/atoms/Badge';
 import { Spinner } from '@/components/atoms/Spinner';
 import { Modal } from '@/components/molecules/Modal';
+import { WhatsAppNavHeader } from '@/components/molecules/WhatsAppNavHeader';
 
 interface QuickReply {
   id: string;
@@ -178,11 +179,13 @@ export default function QuickRepliesPage() {
           onClick={openCreateModal}
           leftIcon={<Plus className="h-4 w-4" />}
           tone="primary"
+          className="bg-emerald-600 hover:bg-emerald-500 font-bold text-white shadow-sm"
         >
           New Quick Reply
         </Button>
       }
     >
+      <WhatsAppNavHeader />
       {/* Search Bar */}
       <div className="mb-6 flex items-center justify-between gap-4">
         <div className="relative max-w-sm flex-1">

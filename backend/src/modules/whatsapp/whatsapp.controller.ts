@@ -28,6 +28,22 @@ export class WhatsAppController {
     return this.service.status();
   }
 
+  @Post('test-webhook')
+  @Permissions(PERMISSIONS.WHATSAPP.READ)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Test WhatsApp Meta Webhook Challenge Verification' })
+  testWebhook(@Body() body: { token?: string }) {
+    return this.service.testWebhookVerification(body?.token);
+  }
+
+  @Post('simulate-inbound')
+  @Permissions(PERMISSIONS.WHATSAPP.SEND)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Simulate incoming customer WhatsApp message for live testing' })
+  simulateInbound(@Body() body: { phone: string; body: string }) {
+    return this.service.simulateInbound(body);
+  }
+
   @Post('send')
   @Permissions(PERMISSIONS.WHATSAPP.SEND)
   @HttpCode(HttpStatus.OK)

@@ -42,7 +42,13 @@ export class WhatsAppService {
 
   async status() {
     const creds = await this.connections.getCredentials('whatsapp');
-    return { connected: !!creds };
+    return {
+      connected: !!creds,
+      phoneNumberId: (creds?.config?.phoneNumberId as string) || undefined,
+      hasAppSecret: !!creds?.secrets?.appSecret,
+      hasVerifyToken: !!creds?.secrets?.verifyToken,
+      verifyToken: creds?.secrets?.verifyToken || undefined,
+    };
   }
 
   // Metin mesajı gönder; sonuç (sent/failed) her durumda kayda geçer.
@@ -157,12 +163,65 @@ export class WhatsAppService {
       mode !== 'subscribe' ||
       !expected ||
       !token ||
-      token !== expected ||
+      token.trim() !== expected.trim() ||
       !challenge
     ) {
-      throw new UnauthorizedException('Doğrulama başarısız.');
+      throw new UnauthorizedException('Doğrulama başarısız (Verify Token mismatch).');
     }
     return challenge;
+  }
+
+  // Webhook challenge verification test endpoint for CRM UI
+  async testWebhookVerification(providedToken?: string) {
+    const creds = await this.connections.getCredentials('whatsapp');
+    const expected = creds?.secrets?.verifyToken;
+    if (!expected) {
+      return {
+        ok: false,
+        message: 'No Verify Token is configured in WhatsApp Connection settings.',
+      };
+    }
+    const tokenToTest = (providedToken ?? expected).trim();
+    if (tokenToTest === expected.trim()) {
+      return {
+        ok: true,
+        message: 'Meta Webhook Challenge Verification PASSED (Verify Token matches).',
+        expectedToken: expected,
+      };
+    }
+    return {
+      ok: false,
+      message: `Token mismatch: provided "${tokenToTest}" does not match configured Verify Token.`,
+    };
+  }
+
+  // Simulate an incoming WhatsApp customer message for live inbox verification
+  async simulateInbound(input: { phone: string; body: string }) {
+    const phone = this.digits(input.phone);
+    if (!phone) {
+      throw new BadRequestException('A valid phone number is required.');
+    }
+    const body = input.body?.trim() || 'Hello! This is a test incoming message.';
+    const link = await this.resolveLink(phone);
+    const msg = await this.repo.createMessage({
+      direction: 'IN',
+      phone,
+      body,
+      status: 'received',
+      waId: `sim_${Date.now()}`,
+      leadId: link.leadId,
+      contactId: link.contactId,
+      tenantId: link.tenantId,
+    });
+
+    // Auto-trigger any active workflows for this message
+    await this.processInboundWorkflows(phone, body, link.tenantId);
+
+    return {
+      ok: true,
+      message: msg,
+      note: 'Simulated inbound message created and processed.',
+    };
   }
 
   // Gelen mesaj webhook'u — imza zorunlu (docs/90).
@@ -208,11 +267,70 @@ export class WhatsAppService {
             tenantId: link.tenantId,
           });
           stored += 1;
+
+          // Process active workflows
+          await this.processInboundWorkflows(phone, body, link.tenantId);
         }
       }
     }
     this.logger.log(`whatsapp.inbound stored=${stored}`);
     return { received: true, stored };
+  }
+
+  private async processInboundWorkflows(
+    phone: string,
+    body: string,
+    tenantId?: string | null,
+  ) {
+    try {
+      const workflows = await this.repo.listWorkflows(tenantId);
+      const activeWorkflows = workflows.filter((w) => w.isActive);
+      const lowerBody = body.toLowerCase();
+
+      for (const wf of activeWorkflows) {
+        let matched = false;
+
+        if (wf.trigger === 'WHATSAPP_KEYWORD') {
+          const keyword = (
+            (wf.conditions as any)?.keyword ||
+            (wf.conditions as any)?.value ||
+            ''
+          )
+            .toLowerCase()
+            .trim();
+          if (keyword && lowerBody.includes(keyword)) {
+            matched = true;
+          }
+        } else if (wf.trigger === 'WHATSAPP_INBOUND') {
+          matched = true;
+        }
+
+        if (matched && Array.isArray(wf.actions)) {
+          for (const action of wf.actions as any[]) {
+            if (action.type === 'SEND_TEXT' && action.text) {
+              await this.send({ to: phone, body: action.text });
+            } else if (
+              action.type === 'SEND_QUICK_REPLY' &&
+              action.quickReplyShortcut
+            ) {
+              const replies = await this.repo.listQuickReplies(tenantId);
+              const found = replies.find(
+                (r) =>
+                  r.shortcut.toLowerCase() ===
+                  action.quickReplyShortcut.toLowerCase(),
+              );
+              if (found) {
+                await this.send({ to: phone, body: found.body });
+              }
+            }
+          }
+        }
+      }
+    } catch (err) {
+      this.logger.error(
+        `Failed to process workflows for inbound message: ${(err as Error).message}`,
+      );
+    }
   }
 
   // --- yardımcılar ---

@@ -27,6 +27,7 @@ import { Button } from '@/components/atoms/Button';
 import { Badge } from '@/components/atoms/Badge';
 import { Spinner } from '@/components/atoms/Spinner';
 import { Modal } from '@/components/molecules/Modal';
+import { WhatsAppNavHeader } from '@/components/molecules/WhatsAppNavHeader';
 
 interface WorkflowAction {
   type: 'SEND_TEXT' | 'SEND_TEMPLATE' | 'SEND_QUICK_REPLY' | 'ASSIGN_AGENT' | 'CHANGE_STATUS' | 'ADD_TAG';
@@ -331,11 +332,13 @@ export default function WhatsAppWorkflowsPage() {
           onClick={openCreateModal}
           leftIcon={<Plus className="h-4 w-4" />}
           tone="primary"
+          className="bg-emerald-600 hover:bg-emerald-500 font-bold text-white shadow-sm"
         >
           New Workflow
         </Button>
       }
     >
+      <WhatsAppNavHeader />
       {workflows.isLoading ? (
         <div className="flex h-64 items-center justify-center">
           <Spinner size="lg" />

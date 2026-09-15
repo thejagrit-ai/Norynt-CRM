@@ -296,6 +296,22 @@ export default function ConnectionsPage() {
     setVisibleSecrets((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const handleOpenConfigure = (p: ProviderDef) => {
+    setConnecting(p);
+    const existing = (conns.data ?? []).find((c) => c.provider === p.key);
+    if (existing && (existing as any).config) {
+      const initial: Record<string, string> = {};
+      Object.entries((existing as any).config).forEach(([k, v]) => {
+        if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') {
+          initial[k] = String(v);
+        }
+      });
+      setForm(initial);
+    } else {
+      setForm({});
+    }
+  };
+
   const paymentProviders = (catalog.data?.providers ?? []).filter((p) => p.category === 'payments');
   const appProviders = (catalog.data?.providers ?? []).filter((p) => p.category !== 'payments');
 
@@ -727,11 +743,19 @@ export default function ConnectionsPage() {
                         <Button
                           size="sm"
                           variant="outline"
+                          onClick={() => handleOpenConfigure(p)}
+                          className="text-xs font-bold"
+                        >
+                          Configure
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
                           onClick={() => testProvider.mutate(conn.id)}
                           disabled={testProvider.isPending}
                           className="text-xs font-bold"
                         >
-                          Test Connection
+                          Test
                         </Button>
                         <Button
                           size="sm"
@@ -746,10 +770,7 @@ export default function ConnectionsPage() {
                     ) : (
                       <Button
                         size="sm"
-                        onClick={() => {
-                          setConnecting(p);
-                          setForm({});
-                        }}
+                        onClick={() => handleOpenConfigure(p)}
                         disabled={!manage}
                         className="w-full bg-brand-600 text-xs font-bold text-white shadow-sm"
                       >
@@ -774,6 +795,21 @@ export default function ConnectionsPage() {
           }}
         >
           <div className="space-y-4">
+            {connecting.key === 'whatsapp' && (
+              <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 space-y-1.5 text-xs text-emerald-800 dark:text-emerald-300">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold">Meta Inbound Webhook Callback URL</span>
+                  <Badge tone="emerald">Live</Badge>
+                </div>
+                <code className="block break-all bg-slate-950/80 p-2 rounded text-[11px] font-mono text-emerald-300 border border-emerald-500/20">
+                  {typeof window !== 'undefined' ? `${window.location.origin}/api/v1/webhooks/whatsapp` : '/api/v1/webhooks/whatsapp'}
+                </code>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  Set this URL in Meta for Developers &rarr; WhatsApp &rarr; Configuration &rarr; Webhook, and match the Verify Token below.
+                </p>
+              </div>
+            )}
+
             <p className="text-xs text-slate-500 dark:text-slate-400">
               Enter your credentials for <strong className="text-slate-900 dark:text-white">{connecting.name}</strong>. Secret keys are encrypted with AES-256-GCM and securely vaulted on the backend.
             </p>

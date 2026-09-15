@@ -2,13 +2,14 @@
 // app/(dashboard)/contacts/page.tsx — Contact relationship directory with company linking & full CRUD.
 import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, Mail, Phone, Building2 } from 'lucide-react';
+import { Plus, Mail, Phone, Building2, MessageSquare } from 'lucide-react';
 import { api, unwrap } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useI18n } from '@/lib/i18n';
 import { DashboardTemplate } from '@/components/templates/DashboardTemplate';
 import { DataTable, Column } from '@/components/organisms/DataTable';
 import { CrudFormModal, CrudField } from '@/components/organisms/CrudFormModal';
+import { WhatsAppSendModal } from '@/components/organisms/WhatsAppSendModal';
 import { Spinner } from '@/components/atoms/Spinner';
 import { Button } from '@/components/atoms/Button';
 import type { Company, Contact } from '@/types';
@@ -19,6 +20,7 @@ export default function ContactsPage() {
   const qc = useQueryClient();
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<Contact | null>(null);
+  const [waTarget, setWaTarget] = useState<Contact | null>(null);
 
   const contacts = useQuery({
     queryKey: ['contacts'],
@@ -67,6 +69,19 @@ export default function ContactsPage() {
       ),
     },
     {
+      key: 'phone',
+      header: t('col.phone') || 'Phone',
+      render: (r) =>
+        r.phone ? (
+          <span className="flex items-center gap-1 font-mono text-xs text-slate-300">
+            <Phone className="h-3 w-3 text-slate-500" />
+            <span>{r.phone}</span>
+          </span>
+        ) : (
+          '—'
+        ),
+    },
+    {
       key: 'email',
       header: t('col.email'),
       render: (r) =>
@@ -92,6 +107,28 @@ export default function ContactsPage() {
         ) : (
           '—'
         ),
+    },
+    {
+      key: 'action',
+      header: '',
+      render: (r) => (
+        <div className="flex justify-end gap-2">
+          {can('whatsapp.send') && r.phone && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="py-1 px-2.5 text-xs text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10"
+              onClick={(e) => {
+                e.stopPropagation();
+                setWaTarget(r);
+              }}
+            >
+              <MessageSquare className="h-3 w-3" />
+              <span>WhatsApp</span>
+            </Button>
+          )}
+        </div>
+      ),
     },
   ];
 
@@ -158,6 +195,15 @@ export default function ContactsPage() {
                 }
               : undefined
           }
+        />
+      )}
+
+      {waTarget && (
+        <WhatsAppSendModal
+          initialPhone={waTarget.phone ?? ''}
+          initialBody={`Hello ${waTarget.firstName}, thank you for connecting with us.`}
+          contactId={waTarget.id}
+          onClose={() => setWaTarget(null)}
         />
       )}
     </DashboardTemplate>

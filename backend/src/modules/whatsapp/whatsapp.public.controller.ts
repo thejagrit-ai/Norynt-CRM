@@ -46,6 +46,11 @@ export class WhatsAppPublicController {
     @Req() req: RawBodyRequest<Request>,
     @Headers('x-hub-signature-256') signature?: string,
   ) {
-    return this.service.handleInbound(req.rawBody?.toString() ?? '', signature);
+    const rawPayload = req.rawBody
+      ? req.rawBody.toString('utf-8')
+      : typeof req.body === 'string'
+        ? req.body
+        : JSON.stringify(req.body ?? {});
+    return this.service.handleInbound(rawPayload, signature);
   }
 }

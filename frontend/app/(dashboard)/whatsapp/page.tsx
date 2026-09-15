@@ -33,6 +33,9 @@ import { Button } from '@/components/atoms/Button';
 import { Badge } from '@/components/atoms/Badge';
 import { Spinner } from '@/components/atoms/Spinner';
 import { Modal } from '@/components/molecules/Modal';
+import { WhatsAppNavHeader } from '@/components/molecules/WhatsAppNavHeader';
+import { WhatsAppWebhookModal } from '@/components/organisms/WhatsAppWebhookModal';
+import { Plus, User } from 'lucide-react';
 
 interface Conversation {
   phone: string;
@@ -87,6 +90,12 @@ export default function WhatsAppInboxPage() {
   const [selectedTemplate, setSelectedTemplate] = useState<WhatsAppTemplate | null>(null);
   const [templateVars, setTemplateVars] = useState<Record<string, string>>({});
   const [sendError, setSendError] = useState<string | null>(null);
+
+  // New Chat & Setup Modals
+  const [setupModalOpen, setSetupModalOpen] = useState(false);
+  const [newChatModalOpen, setNewChatModalOpen] = useState(false);
+  const [newChatPhone, setNewChatPhone] = useState('');
+  const [newChatMessage, setNewChatMessage] = useState('');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -245,24 +254,18 @@ export default function WhatsAppInboxPage() {
 
   return (
     <DashboardTemplate
-      title="WhatsApp Inbox"
-      subtitle="Direct two-way customer messaging via official Meta WhatsApp Cloud API"
+      title="WhatsApp Omnichannel Hub"
+      subtitle="Official Meta Cloud API live messaging, automated workflows, and verified webhooks"
       actions={
         <div className="flex items-center gap-3">
-          {status.data?.connected ? (
-            <div className="flex items-center gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
-              <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Meta API Connected</span>
-            </div>
-          ) : (
-            <Link
-              href="/connections"
-              className="flex items-center gap-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 text-xs text-amber-600 dark:text-amber-400 font-semibold hover:bg-amber-500/20 transition"
-            >
-              <ShieldAlert className="h-3.5 w-3.5" />
-              <span>Setup Connection</span>
-            </Link>
-          )}
+          <Button
+            size="sm"
+            onClick={() => setNewChatModalOpen(true)}
+            className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-sm"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            <span>New Chat</span>
+          </Button>
 
           <button
             onClick={() => {
@@ -277,6 +280,8 @@ export default function WhatsAppInboxPage() {
         </div>
       }
     >
+      <WhatsAppNavHeader onOpenSetup={() => setSetupModalOpen(true)} />
+
       {/* Connection Notice banner if disconnected */}
       {status.data && !status.data.connected && (
         <div className="mb-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-700 dark:text-amber-300 backdrop-blur-xl">
@@ -289,12 +294,13 @@ export default function WhatsAppInboxPage() {
               </p>
             </div>
           </div>
-          <Link
-            href="/connections"
+          <button
+            type="button"
+            onClick={() => setSetupModalOpen(true)}
             className="shrink-0 font-bold underline text-amber-800 dark:text-amber-200 hover:text-amber-900 dark:hover:text-white"
           >
-            Configure Connection →
-          </Link>
+            Configure Connection & Webhook →
+          </button>
         </div>
       )}
 
@@ -316,7 +322,17 @@ export default function WhatsAppInboxPage() {
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   Inbox ({(conversations.data || []).length})
                 </span>
-                <Badge tone="gray">Realtime</Badge>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setNewChatModalOpen(true)}
+                    className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
+                  >
+                    <Plus className="h-3 w-3" />
+                    <span>New Chat</span>
+                  </button>
+                  <Badge tone="gray">Realtime</Badge>
+                </div>
               </div>
 
               <div className="relative">
@@ -707,6 +723,90 @@ export default function WhatsAppInboxPage() {
             </div>
           </div>
         </Modal>
+      )}
+
+      {/* New Conversation Modal */}
+      {newChatModalOpen && (
+        <Modal
+          title="Start New WhatsApp Conversation"
+          onClose={() => {
+            setNewChatModalOpen(false);
+            setNewChatPhone('');
+            setNewChatMessage('');
+          }}
+        >
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                Recipient Phone Number <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                placeholder="+1 (555) 000-0000 or 919876543210"
+                value={newChatPhone}
+                onChange={(e) => setNewChatPhone(e.target.value)}
+                className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 text-xs font-mono text-slate-900 dark:text-white outline-none focus:border-emerald-500"
+              />
+              <p className="text-[11px] text-slate-400 mt-1">
+                Enter phone number with country code (e.g. +919876543210, +15551234567).
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                Initial Message <span className="text-rose-500">*</span>
+              </label>
+              <textarea
+                rows={3}
+                placeholder="Type your message..."
+                value={newChatMessage}
+                onChange={(e) => setNewChatMessage(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-3 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-200 dark:border-slate-800">
+              <Button
+                type="button"
+                tone="secondary"
+                onClick={() => {
+                  setNewChatModalOpen(false);
+                  setNewChatPhone('');
+                  setNewChatMessage('');
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={async () => {
+                  if (!newChatPhone.trim() || !newChatMessage.trim()) return;
+                  try {
+                    await sendMutation.mutateAsync({
+                      to: newChatPhone.trim(),
+                      body: newChatMessage.trim(),
+                    });
+                    setSelectedPhone(newChatPhone.replace(/[^\d]/g, ''));
+                    setNewChatModalOpen(false);
+                    setNewChatPhone('');
+                    setNewChatMessage('');
+                  } catch {}
+                }}
+                disabled={sendMutation.isPending || !newChatPhone.trim() || !newChatMessage.trim()}
+                loading={sendMutation.isPending}
+                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold"
+              >
+                <Send className="h-3.5 w-3.5" />
+                <span>Send & Open Chat</span>
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Webhook & Setup Modal */}
+      {setupModalOpen && (
+        <WhatsAppWebhookModal onClose={() => setSetupModalOpen(false)} />
       )}
     </DashboardTemplate>
   );

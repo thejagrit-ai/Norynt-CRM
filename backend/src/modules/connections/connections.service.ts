@@ -179,6 +179,7 @@ export class ConnectionsService {
       label: row.label,
       status: row.status,
       secretFields: secretKeys,
+      config: (row.config as Record<string, unknown>) ?? {},
       createdAt: row.createdAt,
     };
   }
