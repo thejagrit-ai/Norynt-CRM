@@ -446,6 +446,26 @@ html.light .bg-slate-950.mesh-gradient-bg {
   background-color: #f4f6fa !important;
 }
 
+/* Login showcase intentionally stays dark in both themes. The broad light-mode
+   palette mappings above are designed for dashboard surfaces, not this hero. */
+html.light .norynt-login .login-showcase,
+html.light .norynt-login .login-showcase.bg-\[\#080d1a\] {
+  background-color: #080d1a !important;
+}
+html.light .norynt-login .login-showcase .text-white {
+  color: #ffffff !important;
+}
+html.light .norynt-login .login-showcase .text-slate-300 {
+  color: #cbd5e1 !important;
+}
+html.light .norynt-login .login-showcase .text-slate-400 {
+  color: #94a3b8 !important;
+}
+html.light .norynt-login .login-showcase .text-indigo-300,
+html.light .norynt-login .login-showcase .text-indigo-200 {
+  color: #c7d2fe !important;
+}
+
 /* LoadingScreen uses an arbitrary-value class, so no palette rule reaches it. */
 html.light .bg-\[\#020617\] {
   background-color: #f4f6fa !important;

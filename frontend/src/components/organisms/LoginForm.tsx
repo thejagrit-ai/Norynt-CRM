@@ -206,14 +206,8 @@ export function LoginForm() {
     );
   }
 
-  function handleOAuthClick(provider: string) {
-    setInfoMessage(
-      `${provider} Single Sign-On is managed through your organization's directory. Please sign in using your standard credentials.`
-    );
-  }
-
   return (
-    <div className="w-full max-w-[470px] sm:max-w-[490px] rounded-[22px] bg-white dark:bg-[#0f172a] p-9 sm:p-10 shadow-xl shadow-slate-200/50 dark:shadow-black/40 border border-slate-200/80 dark:border-slate-800 transition-all">
+    <div className="w-full max-w-[520px] rounded-[28px] bg-white dark:bg-[#0f172a] p-8 sm:p-11 shadow-[0_24px_70px_-30px_rgba(15,23,42,0.3)] dark:shadow-black/40 border border-slate-200/80 dark:border-slate-800 transition-all">
       
       {/* 1. Real Project Logo & Brand Presentation */}
       <div className="flex flex-col items-center text-center">
@@ -238,10 +232,10 @@ export function LoginForm() {
         </div>
 
         {/* Welcome Back & Supporting Text */}
-        <h1 className="mt-5 text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+        <h1 className="mt-5 text-[28px] font-bold text-slate-900 dark:text-white tracking-tight">
           Welcome Back
         </h1>
-        <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-[340px]">
+        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-[380px]">
           Sign in to your Norynt CRM account and continue building stronger customer relationships.
         </p>
       </div>
@@ -409,38 +403,6 @@ export function LoginForm() {
         </button>
       </form>
 
-      {/* 3. Divider: OR CONTINUE WITH */}
-      <div className="relative my-5 flex items-center justify-center">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-slate-200 dark:border-slate-800" />
-        </div>
-        <span className="relative bg-white dark:bg-[#0f172a] px-3 text-[10.5px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 select-none">
-          or continue with
-        </span>
-      </div>
-
-      {/* 4. Social SSO Buttons */}
-      <div className="grid grid-cols-2 gap-3 select-none">
-        <button
-          type="button"
-          onClick={() => handleOAuthClick('Google')}
-          disabled={busy}
-          className="h-11 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors flex items-center justify-center gap-2 px-2.5 shadow-2xs cursor-pointer disabled:opacity-60"
-        >
-          <GoogleIcon />
-          <span>Google</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => handleOAuthClick('Microsoft')}
-          disabled={busy}
-          className="h-11 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors flex items-center justify-center gap-2 px-2.5 shadow-2xs cursor-pointer disabled:opacity-60"
-        >
-          <MicrosoftIcon />
-          <span>Microsoft</span>
-        </button>
-      </div>
     </div>
   );
 }
