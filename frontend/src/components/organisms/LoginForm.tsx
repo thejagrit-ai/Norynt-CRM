@@ -1,9 +1,4 @@
 'use client';
-// src/components/organisms/LoginForm.tsx
-// Executive SaaS authentication card for Norynt CRM matching the reference design.
-// Contains official Norynt logo asset, email & password fields, show/hide toggle,
-// remember-me, need help, Sign In with arrow, and Google/Microsoft SSO buttons.
-
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
@@ -19,56 +14,9 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { useI18n } from '@/lib/i18n';
+import styles from './LoginForm.module.css';
 
 const LS_REMEMBER_KEY = 'norynt_crm_remember_email';
-
-// High-fidelity Google SVG Icon
-const GoogleIcon = () => (
-  <svg
-    width="18"
-    height="18"
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    className="w-[18px] h-[18px] shrink-0"
-    style={{ width: '18px', height: '18px', minWidth: '18px', minHeight: '18px' }}
-    aria-hidden="true"
-  >
-    <path
-      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-      fill="#4285F4"
-    />
-    <path
-      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-      fill="#34A853"
-    />
-    <path
-      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-      fill="#FBBC05"
-    />
-    <path
-      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-      fill="#EA4335"
-    />
-  </svg>
-);
-
-// High-fidelity Microsoft SVG Icon
-const MicrosoftIcon = () => (
-  <svg
-    width="18"
-    height="18"
-    viewBox="0 0 23 23"
-    fill="currentColor"
-    className="w-[18px] h-[18px] shrink-0"
-    style={{ width: '18px', height: '18px', minWidth: '18px', minHeight: '18px' }}
-    aria-hidden="true"
-  >
-    <rect x="0" y="0" width="11" height="11" fill="#F25022" />
-    <rect x="12" y="0" width="11" height="11" fill="#7FBA00" />
-    <rect x="0" y="12" width="11" height="11" fill="#00A4EF" />
-    <rect x="12" y="12" width="11" height="11" fill="#FFB900" />
-  </svg>
-);
 
 export function LoginForm() {
   const { login } = useAuth();
@@ -207,202 +155,59 @@ export function LoginForm() {
   }
 
   return (
-    <div className="w-full max-w-[520px] rounded-[28px] bg-white dark:bg-[#0f172a] p-8 sm:p-11 shadow-[0_24px_70px_-30px_rgba(15,23,42,0.3)] dark:shadow-black/40 border border-slate-200/80 dark:border-slate-800 transition-all">
-      
-      {/* 1. Real Project Logo & Brand Presentation */}
-      <div className="flex flex-col items-center text-center">
-        {/* Real Norynt Logo Mark (Existing Asset, NOT AI-made) */}
-        <div className="flex h-14 w-14 items-center justify-center mb-1 transition-transform hover:scale-105">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/norynt-crm-mark.png"
-            alt="Norynt"
-            className="h-full w-full object-contain"
-          />
-        </div>
-
-        {/* Brand Wordmark & Tag */}
-        <div className="flex flex-col items-center leading-none">
-          <span className="text-[20px] font-bold text-slate-900 dark:text-white tracking-tight">
-            Norynt
-          </span>
-          <span className="text-[9.5px] font-extrabold uppercase tracking-[0.28em] text-brand-600 dark:text-brand-400 mt-1">
-            CRM
-          </span>
-        </div>
-
-        {/* Welcome Back & Supporting Text */}
-        <h1 className="mt-5 text-[28px] font-bold text-slate-900 dark:text-white tracking-tight">
-          Welcome Back
-        </h1>
-        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-[380px]">
-          Sign in to your Norynt CRM account and continue building stronger customer relationships.
-        </p>
+    <div className={styles.card}>
+      <div className={styles.heading}>
+        <span className={styles.kicker}><Lock size={12} aria-hidden="true" /> YOUR WORKSPACE AWAITS</span>
+        <h1>Welcome back<span>.</span></h1>
+        <p>Sign in and pick up where you left off.</p>
       </div>
-
-      {/* 2. Authentication Form */}
-      <form onSubmit={onSubmit} className="mt-6 space-y-4" noValidate>
-        {/* Email Address Field */}
-        <div className="space-y-1.5">
-          <label
-            htmlFor="login-email"
-            className="block text-xs font-semibold text-slate-700 dark:text-slate-300"
-          >
-            Email address
-          </label>
-          <div className="relative">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 dark:text-slate-500">
-              <Mail className="h-4.5 w-4.5" />
-            </div>
-            <input
-              id="login-email"
-              type="email"
-              autoComplete="email"
-              placeholder="admin@crm.dev"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                if (emailError) setEmailError(null);
-                if (error) setError(null);
-              }}
-              required
-              disabled={busy}
-              className={`w-full h-11 rounded-xl border py-2 pl-10 pr-3.5 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition-colors focus:outline-none focus:ring-2 disabled:opacity-50 ${
-                emailError
-                  ? 'border-rose-500 bg-rose-50/40 dark:bg-rose-950/20 focus:border-rose-500 focus:ring-rose-500/15'
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/60 hover:border-slate-300 dark:hover:border-slate-600 focus:border-brand-500 focus:ring-brand-500/15'
-              }`}
-            />
+      <form onSubmit={onSubmit} className={styles.form} noValidate aria-busy={busy}>
+        <div className={styles.field}>
+          <label htmlFor="login-email">Work email</label>
+          <div className={styles.inputWrap}>
+            <Mail size={18} className={styles.icon} aria-hidden="true" />
+            <input id="login-email" name="email" type="email" autoComplete="email" placeholder="you@company.com"
+              value={email} required disabled={busy} aria-invalid={!!emailError}
+              aria-describedby={emailError ? 'email-error' : undefined}
+              onChange={(e) => { setEmail(e.target.value); if (emailError) setEmailError(null); if (error) setError(null); }} />
           </div>
-          {emailError && (
-            <p className="text-[11px] font-medium text-rose-500 dark:text-rose-400 flex items-center gap-1.5 mt-1">
-              <AlertCircle className="h-3 w-3 shrink-0" />
-              <span>{emailError}</span>
-            </p>
-          )}
+          {emailError && <p id="email-error" role="alert" className={styles.fieldError}><AlertCircle size={13} aria-hidden="true" />{emailError}</p>}
         </div>
-
-        {/* Password Field */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <label
-              htmlFor="login-password"
-              className="block text-xs font-semibold text-slate-700 dark:text-slate-300"
-            >
-              Password
-            </label>
-            <button
-              type="button"
-              onClick={handleForgotPassword}
-              className="text-xs font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 transition-colors focus:outline-none"
-            >
-              Forgot password?
+        <div className={styles.field}>
+          <div className={styles.labelRow}>
+            <label htmlFor="login-password">Password</label>
+            <button type="button" onClick={handleForgotPassword} className={styles.textButton}>Forgot password?</button>
+          </div>
+          <div className={styles.inputWrap}>
+            <Lock size={18} className={styles.icon} aria-hidden="true" />
+            <input id="login-password" name="password" type={showPassword ? 'text' : 'password'}
+              autoComplete="current-password" placeholder="Enter your password"
+              value={password} required disabled={busy} aria-invalid={!!passwordError}
+              aria-describedby={passwordError ? 'password-error' : undefined}
+              onChange={(e) => { setPassword(e.target.value); if (passwordError) setPasswordError(null); if (error) setError(null); }} />
+            <button type="button" onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword}
+              disabled={busy} className={styles.passwordToggle}>
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
-          <div className="relative">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 dark:text-slate-500">
-              <Lock className="h-4.5 w-4.5" />
-            </div>
-            <input
-              id="login-password"
-              type={showPassword ? 'text' : 'password'}
-              autoComplete="current-password"
-              placeholder="•••••••••••••"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                if (passwordError) setPasswordError(null);
-                if (error) setError(null);
-              }}
-              required
-              disabled={busy}
-              className={`w-full h-11 rounded-xl border py-2 pl-10 pr-10 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition-colors focus:outline-none focus:ring-2 disabled:opacity-50 ${
-                passwordError
-                  ? 'border-rose-500 bg-rose-50/40 dark:bg-rose-950/20 focus:border-rose-500 focus:ring-rose-500/15'
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/60 hover:border-slate-300 dark:hover:border-slate-600 focus:border-brand-500 focus:ring-brand-500/15'
-              }`}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-              disabled={busy}
-              className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none"
-            >
-              {showPassword ? (
-                <EyeOff className="h-4.5 w-4.5" />
-              ) : (
-                <Eye className="h-4.5 w-4.5" />
-              )}
-            </button>
-          </div>
-          {passwordError && (
-            <p className="text-[11px] font-medium text-rose-500 dark:text-rose-400 flex items-center gap-1.5 mt-1">
-              <AlertCircle className="h-3 w-3 shrink-0" />
-              <span>{passwordError}</span>
-            </p>
-          )}
+          {passwordError && <p id="password-error" role="alert" className={styles.fieldError}><AlertCircle size={13} aria-hidden="true" />{passwordError}</p>}
         </div>
-
-        {/* Remember Me & Need Help Row */}
-        <div className="flex items-center justify-between pt-0.5">
-          <label className="flex items-center gap-2 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-              disabled={busy}
-              className="h-4 w-4 rounded border-slate-300 dark:border-slate-700 text-brand-600 focus:ring-brand-500/20 transition cursor-pointer"
-            />
-            <span className="text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition font-medium">
-              Remember me
-            </span>
-          </label>
-          <button
-            type="button"
-            onClick={handleNeedHelp}
-            className="text-xs font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 transition-colors focus:outline-none"
-          >
-            Need help?
-          </button>
-        </div>
-
-        {/* Info Message Banner */}
-        {infoMessage && (
-          <div className="flex items-start gap-2.5 rounded-xl border border-sky-500/30 bg-sky-50 dark:bg-sky-950/30 p-3 text-xs text-sky-700 dark:text-sky-300 animate-slide-down">
-            <Info className="h-4 w-4 shrink-0 mt-0.5 text-sky-500" />
-            <div className="leading-relaxed">{infoMessage}</div>
-          </div>
-        )}
-
-        {/* Error Alert Box */}
-        {error && (
-          <div className="flex items-start gap-2.5 rounded-xl border border-rose-500/30 bg-rose-50 dark:bg-rose-950/30 p-3 text-xs font-medium text-rose-600 dark:text-rose-400 animate-slide-down">
-            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-            <div className="leading-relaxed">{error}</div>
-          </div>
-        )}
-
-        {/* Primary CTA Sign In Button with Arrow */}
-        <button
-          type="submit"
-          disabled={busy}
-          className="w-full h-11 rounded-xl bg-gradient-to-r from-brand-600 via-indigo-600 to-brand-600 hover:from-brand-500 hover:via-indigo-500 hover:to-brand-500 active:scale-[0.99] font-semibold text-sm text-white shadow-md shadow-brand-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer mt-2"
-        >
-          {busy ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin text-white" />
-              <span>Signing in...</span>
-            </>
-          ) : (
-            <>
-              <span>Sign In</span>
-              <ArrowRight className="h-4 w-4" />
-            </>
-          )}
+        <label className={styles.remember}>
+          <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} disabled={busy} />
+          <span>Remember my email</span>
+        </label>
+        {infoMessage && <div className={styles.info} role="status"><Info size={17} aria-hidden="true" /><p>{infoMessage}</p></div>}
+        {error && <div className={styles.error} role="alert"><AlertCircle size={17} aria-hidden="true" /><p>{error}</p></div>}
+        <button type="submit" disabled={busy} className={styles.submit}>
+          {busy ? <><Loader2 size={18} className={styles.spinner} aria-hidden="true" /><span>Signing in...</span></>
+            : <><span>Sign in to workspace</span><ArrowRight size={18} aria-hidden="true" /></>}
         </button>
       </form>
-
+      <div className={styles.cardFooter}>
+        <span>Having trouble signing in?</span>
+        <button type="button" onClick={handleNeedHelp} className={styles.textButton}>Get help <ArrowRight size={13} aria-hidden="true" /></button>
+      </div>
     </div>
   );
 }
