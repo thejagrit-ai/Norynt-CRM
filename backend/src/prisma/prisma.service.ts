@@ -1,6 +1,7 @@
 // src/prisma/prisma.service.ts
 // PrismaClient yaşam döngüsü + MERKEZİ tenant filtresi (multi-tenancy güvenlik kuralı).
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaClient } from '@prisma/client';
 import {
   getCurrentTenantId,
@@ -22,8 +23,16 @@ export class PrismaService
   extends PrismaClient
   implements OnModuleInit, OnModuleDestroy
 {
-  constructor() {
-    super();
+  constructor(config: ConfigService) {
+    super({
+      datasources: {
+        db: {
+          url:
+            config.get<string>('NORYNT_DATABASE_URL') ||
+            config.getOrThrow<string>('DATABASE_URL'),
+        },
+      },
+    });
     // Tenant bağlamı aktifse, tenant kapsamlı modellere otomatik tenantId enjekte edilir.
     // Geliştiricinin elle yazmasına bırakılmaz (unutma = veri sızıntısı).
     this.$use(async (params, next) => {
