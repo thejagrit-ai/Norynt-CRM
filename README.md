@@ -2,7 +2,9 @@
 
 # Norynt CRM
 
-**An enterprise-grade, scalable, secure, role-based (RBAC) and multi-tenant, API-first CRM platform by Norynt.**
+**Customer relationships, sales pipelines, and business operations in one workspace.**
+
+[Open the live CRM](https://frontend-zeta-one-81.vercel.app/login) · [Demo credentials](#live-demo) · [Run locally](#quick-start)
 
 NestJS + PostgreSQL/Prisma backend · Next.js 14 (App Router) + Atomic Design frontend · Docker
 
@@ -19,8 +21,27 @@ reports, signed webhooks, AI assistant, and multi-tenancy.
 
 ---
 
+## Live demo
+
+**Login page:** [Norynt CRM on Vercel](https://frontend-zeta-one-81.vercel.app/login)
+
+Use this shared demo account to explore the CRM:
+
+| Role | Login ID / email | Password |
+|------|------------------|----------|
+| ADMIN | `admin@crm.dev` | `ChangeMe!2026` |
+
+Open the live link, enter the email and password above, and select **Sign in to workspace**.
+The login page uses a dark theme with an animated abstract background.
+
+The hosted frontend runs on Vercel and connects to the dedicated Norynt API and its Neon PostgreSQL database.
+The live link and administrator login were verified on October 13, 2026.
+
+---
+
 ## Table of contents
 
+- [Live demo](#live-demo)
 - [What it offers](#what-it-offers)
 - [Feature highlights](#feature-highlights)
 - [Tech stack](#tech-stack)
@@ -29,7 +50,7 @@ reports, signed webhooks, AI assistant, and multi-tenancy.
 - [Modules & API surface](#modules--api-surface)
 - [Roadmap](#roadmap)
 - [Quick start](#quick-start)
-- [Demo & test logins](#demo--test-logins)
+- [Local demo & test accounts](#local-demo--test-accounts)
 - [Environment variables](#environment-variables)
 - [Tests & quality](#tests--quality)
 - [Project structure](#project-structure)
@@ -263,10 +284,15 @@ npm run dev        # http://localhost:3001  (/api → proxied to backend)
 
 ---
 
-## Demo & test logins
+## Local demo & test accounts
+
+For the hosted CRM, use the verified [live demo account](#live-demo) above.
+The accounts below are defaults created in your own database by the seed scripts:
 
 ```bash
-cd backend && npm run seed && npm run seed:demo   # role-based users + sample data
+cd backend
+npm run seed        # roles, permissions, administrator, and pipeline
+npm run seed:demo   # additional role-based accounts and sample data
 ```
 
 | Role | Email | Password |
@@ -276,6 +302,9 @@ cd backend && npm run seed && npm run seed:demo   # role-based users + sample da
 | SALES | `sales@crm.dev` | `Demo!2026` |
 | FINANCE | `finance@crm.dev` | `Demo!2026` |
 | VIEWER | `viewer@crm.dev` | `Demo!2026` |
+
+The administrator email and password can be customized with `SEED_ADMIN_EMAIL` and
+`SEED_ADMIN_PASSWORD` before the account is first created. Seeding preserves existing account passwords.
 
 > Roles see different things: SALES cannot see invoice amounts (masked), FINANCE can;
 > VIEWER is read-only; menu items are shown by permission.
@@ -289,6 +318,7 @@ Key backend variables (`backend/.env.example`):
 | Variable | Description |
 |----------|-------------|
 | `DATABASE_URL` | PostgreSQL connection (required) |
+| `NORYNT_DATABASE_URL` | Optional Norynt PostgreSQL connection override; takes precedence over `DATABASE_URL` at runtime |
 | `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` | JWT secrets (must differ, required) |
 | `JWT_ACCESS_TTL` / `JWT_REFRESH_TTL` | Token lifetimes (default `15m` / `7d`) |
 | `BCRYPT_COST` | bcrypt cost (10–15, default 12) |
