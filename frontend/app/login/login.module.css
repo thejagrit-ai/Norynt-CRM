@@ -6,19 +6,10 @@
   --login-card: rgba(17, 21, 40, .94);
   --login-input: #0e1225;
   --login-error: #ffabb6;
+  color-scheme: dark;
   position: relative; isolation: isolate; min-height: 100svh;
   display: flex; flex-direction: column; color: var(--login-text);
   background: #080b17; padding: 32px clamp(24px, 5vw, 88px) 24px;
-}
-:global(html.light) .page {
-  --login-text: #171a34;
-  --login-muted: #626b82;
-  --login-accent: #6350c7;
-  --login-border: rgba(84, 81, 143, .17);
-  --login-card: rgba(255, 255, 255, .94);
-  --login-input: #f8f9fe;
-  --login-error: #b92d47;
-  background: #f4f5fc;
 }
 .background { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: -1; }
 .grid { position: absolute; inset: 0; background-image: linear-gradient(var(--login-border) 1px, transparent 1px), linear-gradient(90deg, var(--login-border) 1px, transparent 1px); background-size: 72px 72px; opacity: .2; mask-image: linear-gradient(140deg, black, transparent 65%); }
@@ -29,12 +20,12 @@
 .orbitOne::after { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--login-accent); position: absolute; top: 140px; right: 135px; box-shadow: 0 0 24px var(--login-accent); }
 .orbitTwo { width: 1120px; height: 1120px; left: -610px; bottom: -810px; animation-direction: reverse; }
 .header, .footer { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+/* Keep the dark login header clear of the CRM's global light-theme topbar styles. */
+:global(html.light) .page .header { background-color: transparent !important; border-bottom-color: transparent !important; }
 .brand { display: inline-flex; align-items: center; gap: 12px; color: var(--login-text); text-decoration: none; }
 .brand img { object-fit: contain; }
 .brand > span { font-weight: 700; font-size: 23px; letter-spacing: -.8px; display: flex; align-items: center; gap: 10px; }
 .brandTag { border-left: 1px solid var(--login-border); padding-left: 11px; color: var(--login-muted); font-size: 10px; font-weight: 600; letter-spacing: 2px; }
-.themeButton { height: 42px; width: 42px; display: grid; place-items: center; background: var(--login-card); border: 1px solid var(--login-border); border-radius: 50%; color: var(--login-muted); transition: color .2s, border-color .2s; }
-.themeButton:hover { color: var(--login-text); border-color: var(--login-accent); }
 .page a:focus-visible, .page button:focus-visible { outline: 2px solid var(--login-accent); outline-offset: 5px; }
 .content { flex: 1; width: 100%; max-width: 1150px; margin: 0 auto; display: grid; grid-template-columns: 1.15fr 1fr; align-items: center; gap: clamp(40px, 7vw, 110px); padding: 64px 0; }
 .intro { position: relative; }
@@ -42,7 +33,6 @@
 .eyebrow > span { height: 6px; width: 6px; background: var(--login-accent); border-radius: 50%; box-shadow: 0 0 15px rgba(151, 120, 255, .4); }
 .intro h2 { margin: 24px 0; font-size: clamp(40px, 4.3vw, 62px); font-weight: 500; line-height: 1.1; letter-spacing: -2.8px; }
 .intro h2 > span { background: linear-gradient(100deg, #bcaaff, #85baff); background-clip: text; color: transparent; }
-:global(html.light) .intro h2 > span { background-image: linear-gradient(100deg, #7552cd, #356ba7); }
 .intro > p { font-size: 15px; color: var(--login-muted); line-height: 1.85; }
 .features { margin-top: 30px; display: flex; flex-wrap: wrap; gap: 14px 20px; }
 .features > span { display: flex; gap: 7px; align-items: center; font-size: 11px; color: var(--login-muted); }
