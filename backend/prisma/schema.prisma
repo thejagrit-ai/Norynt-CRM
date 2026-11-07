@@ -18,6 +18,8 @@ model User {
   firstName         String
   lastName          String
   isActive          Boolean           @default(true)
+  // false only for self-registered accounts that haven't confirmed their email OTP yet.
+  emailVerified     Boolean           @default(true)
   tenantId          String?
   roles             UserRole[]
   refreshTokens     RefreshToken[]
@@ -68,6 +70,20 @@ model RolePermission {
   permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
   @@id([roleId, permissionId])
+}
+
+// One-time codes emailed for signup verification and password reset.
+model OtpCode {
+  id         String    @id @default(uuid())
+  email      String
+  purpose    String // EMAIL_VERIFY | PASSWORD_RESET
+  codeHash   String
+  attempts   Int       @default(0)
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([email, purpose])
 }
 
 model RefreshToken {

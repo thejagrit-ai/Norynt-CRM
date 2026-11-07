@@ -43,6 +43,7 @@ export class AuthRepository {
     passwordHash: string;
     firstName: string;
     lastName: string;
+    emailVerified?: boolean;
   }) {
     return this.prisma.user.create({
       data,
@@ -74,6 +75,30 @@ export class AuthRepository {
       where: { id },
       data: { passwordHash },
     });
+  }
+
+  // A reset by emailed code proves mailbox ownership, so it also verifies the email.
+  resetPasswordAndVerify(id: string, passwordHash: string) {
+    return this.prisma.user.update({
+      where: { id },
+      data: { passwordHash, emailVerified: true },
+    });
+  }
+
+  // Re-registering an address that never confirmed its code replaces the pending credentials.
+  updatePendingRegistration(
+    id: string,
+    data: { passwordHash: string; firstName: string; lastName: string },
+  ) {
+    return this.prisma.user.update({
+      where: { id },
+      data,
+      include: { roles: { include: { role: true } } },
+    });
+  }
+
+  markEmailVerified(id: string) {
+    return this.prisma.user.update({ where: { id }, data: { emailVerified: true } });
   }
 
   // --- Refresh token ---

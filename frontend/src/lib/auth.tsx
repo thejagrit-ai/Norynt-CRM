@@ -57,10 +57,18 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
   ],
 };
 
+export interface RegisterInput {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}
+
 interface AuthState {
   user: AuthUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<AuthUser>;
+  register: (input: RegisterInput) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<AuthUser | null>;
   can: (perm: string) => boolean;
@@ -142,6 +150,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  const register = useCallback(async (input: RegisterInput): Promise<void> => {
+    await api.post('/auth/register', input);
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await api.post('/auth/logout');
@@ -179,8 +191,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const value = useMemo(
-    () => ({ user, loading, login, logout, refreshUser: loadMe, can }),
-    [user, loading, login, logout, loadMe, can],
+    () => ({ user, loading, login, register, logout, refreshUser: loadMe, can }),
+    [user, loading, login, register, logout, loadMe, can],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,8 +1,11 @@
 // src/modules/auth/auth.service.ts
 // Core Authentication Service: password validation, token issuance, refresh rotation, and session management.
 import {
+  BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -13,6 +16,7 @@ import { AuthRepository } from './auth.repository';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { AccessTokenPayload } from './strategies/jwt.strategy';
+import { OtpService } from './otp.service';
 
 const DUMMY_BCRYPT_HASH =
   '$2b$12$abcdefghijklmnopqrstuuFwN9Yl9c2/4kqfX3sQ1zr2mNQ0Pa8Vy';
@@ -47,23 +51,97 @@ export class AuthService {
     private readonly authRepo: AuthRepository,
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
+    private readonly otp: OtpService,
   ) {
     this.bcryptCost = Number(this.config.get<number>('BCRYPT_COST', 12));
   }
 
-  async register(dto: RegisterDto): Promise<AuthUserView> {
+  private readonly logger = new Logger(AuthService.name);
+
+  /** Sends a code but never lets delivery problems or cooldowns reveal whether an account exists. */
+  private async sendQuietly(
+    email: string,
+    purpose: 'EMAIL_VERIFY' | 'PASSWORD_RESET',
+    firstName?: string,
+  ): Promise<boolean> {
+    try {
+      await this.otp.issue(email, purpose, firstName);
+      return true;
+    } catch (err: any) {
+      this.logger.warn(`OTP ${purpose} not sent: ${err?.message}`);
+      return false;
+    }
+  }
+
+  async register(
+    dto: RegisterDto,
+  ): Promise<AuthUserView & { emailSent: boolean }> {
     const existing = await this.authRepo.findByEmail(dto.email);
-    if (existing) {
+    if (existing && existing.emailVerified) {
       throw new ConflictException('This email address is already registered.');
     }
     const passwordHash = await bcrypt.hash(dto.password, this.bcryptCost);
-    const user = await this.authRepo.createUser({
-      email: dto.email,
-      passwordHash,
-      firstName: dto.firstName,
-      lastName: dto.lastName,
-    });
-    return this.toUserView(user);
+    const user = existing
+      ? await this.authRepo.updatePendingRegistration(existing.id, {
+          passwordHash,
+          firstName: dto.firstName,
+          lastName: dto.lastName,
+        })
+      : await this.authRepo.createUser({
+          email: dto.email,
+          passwordHash,
+          firstName: dto.firstName,
+          lastName: dto.lastName,
+          emailVerified: false,
+        });
+    const emailSent = await this.sendQuietly(
+      dto.email,
+      'EMAIL_VERIFY',
+      dto.firstName,
+    );
+    return { ...this.toUserView(user), emailSent };
+  }
+
+  async verifyEmail(email: string, code: string): Promise<{ verified: true }> {
+    const user = await this.authRepo.findByEmail(email);
+    if (!user) {
+      throw new BadRequestException('That code is incorrect or has expired.');
+    }
+    await this.otp.consume(email, 'EMAIL_VERIFY', code);
+    await this.authRepo.markEmailVerified(user.id);
+    return { verified: true };
+  }
+
+  async resendVerification(email: string): Promise<{ sent: true }> {
+    const user = await this.authRepo.findByEmail(email);
+    if (user && !user.emailVerified && user.isActive) {
+      await this.sendQuietly(email, 'EMAIL_VERIFY', user.firstName);
+    }
+    return { sent: true };
+  }
+
+  async forgotPassword(email: string): Promise<{ sent: true }> {
+    const user = await this.authRepo.findByEmail(email);
+    if (user && user.isActive) {
+      await this.sendQuietly(email, 'PASSWORD_RESET', user.firstName);
+    }
+    return { sent: true };
+  }
+
+  async resetPassword(
+    email: string,
+    code: string,
+    newPassword: string,
+  ): Promise<{ reset: true }> {
+    const user = await this.authRepo.findByEmail(email);
+    if (!user || !user.isActive) {
+      throw new BadRequestException('That code is incorrect or has expired.');
+    }
+    await this.otp.consume(email, 'PASSWORD_RESET', code);
+    const hash = await bcrypt.hash(newPassword, this.bcryptCost);
+    await this.authRepo.resetPasswordAndVerify(user.id, hash);
+    await this.authRepo.revokeAllForUser(user.id); // sign out other sessions
+    return { reset: true };
   }
 
   async validateAndLogin(dto: LoginDto): Promise<LoginResult> {
@@ -77,6 +155,9 @@ export class AuthService {
       throw new UnauthorizedException(
         'Invalid credentials. Please verify your email and password.',
       );
+    }
+    if (!user.emailVerified) {
+      throw new ForbiddenException('Verify your email address to sign in.');
     }
     return this.issueTokens(user);
   }

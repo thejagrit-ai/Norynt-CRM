@@ -6,6 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { createHash } from 'crypto';
 import { AuthService } from './auth.service';
+import { OtpService } from './otp.service';
 import { AuthRepository } from './auth.repository';
 
 // bcrypt native modülü; spyOn ile yeniden tanımlanamadığı için tümden mock'lanır.
@@ -27,6 +28,7 @@ const makeUser = (overrides: Record<string, unknown> = {}) => ({
   firstName: 'System',
   lastName: 'Admin',
   isActive: true,
+  emailVerified: true,
   roles: [{ role: { name: 'ADMIN' } }],
   ...overrides,
 });
@@ -77,6 +79,7 @@ describe('AuthService', () => {
       repo as unknown as AuthRepository,
       jwt as unknown as JwtService,
       config,
+      { issue: jest.fn().mockResolvedValue(undefined), consume: jest.fn() } as unknown as OtpService,
     );
   });
 

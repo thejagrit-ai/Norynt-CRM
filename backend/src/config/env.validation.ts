@@ -52,6 +52,8 @@ export const envValidationSchema = Joi.object({
   SMTP_USER: Joi.string().allow('').optional(),
   SMTP_PASS: Joi.string().allow('').optional(),
   SMTP_FROM: Joi.string().allow('').optional(),
+  SMTP_FROM_NAME: Joi.string().allow('').optional(),
+  SUPPORT_EMAIL: Joi.string().allow('').optional(),
 
   // --- v2.6: AI (Claude) opsiyonel ---
   ANTHROPIC_API_KEY: Joi.string().allow('').optional(),
