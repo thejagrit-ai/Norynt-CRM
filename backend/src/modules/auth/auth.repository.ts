@@ -85,10 +85,6 @@ export class AuthRepository {
     });
   }
 
-  markEmailVerified(id: string) {
-    return this.prisma.user.update({ where: { id }, data: { emailVerified: true } });
-  }
-
   // --- Refresh token ---
 
   createRefreshToken(data: {

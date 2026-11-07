@@ -84,28 +84,25 @@ describe('AuthService', () => {
   });
 
   // U-1.1
-  it("register parolayı bcrypt ile hash'ler ve düz parolayı saklamaz", async () => {
+  it('register stores an unusable random hash, never a caller password, and takes no password', async () => {
     repo.findByEmail.mockResolvedValue(null);
-    mockHash.mockResolvedValue('bcrypted');
+    mockHash.mockResolvedValue('bcrypted-random');
     repo.createUser.mockImplementation(
       ({ passwordHash }: { passwordHash: string }) =>
-        makeUser({ passwordHash }),
+        makeUser({ passwordHash, emailVerified: false }),
     );
 
     const result = await service.register({
       email: 'new@crm.dev',
-      password: 'S3cure!Pass00',
       firstName: 'New',
       lastName: 'User',
     });
 
-    expect(mockHash).toHaveBeenCalledWith('S3cure!Pass00', 12);
     const created = repo.createUser.mock.calls[0][0];
-    expect(created.passwordHash).toBe('bcrypted');
-    expect(created.passwordHash).not.toBe('S3cure!Pass00');
-    // Yanıtta parola/hash sızmaz
+    expect(created.emailVerified).toBe(false);
+    expect(created.passwordHash).toBe('bcrypted-random');
+    expect(mockHash.mock.calls[0][0]).toMatch(/^[0-9a-f]{64}$/); // random, not user-chosen
     expect(result).not.toHaveProperty('passwordHash');
-    expect(result).not.toHaveProperty('password');
   });
 
   // U-1.2
@@ -114,11 +111,17 @@ describe('AuthService', () => {
     await expect(
       service.register({
         email: 'admin@crm.dev',
-        password: 'S3cure!Pass00',
         firstName: 'X',
         lastName: 'Y',
       }),
     ).rejects.toBeInstanceOf(ConflictException);
+  });
+
+  it('register on a pending address only re-sends a code and does not modify the account', async () => {
+    repo.findByEmail.mockResolvedValue(makeUser({ emailVerified: false }));
+    await service.register({ email: 'admin@crm.dev', firstName: 'X', lastName: 'Y' });
+    expect(repo.createUser).not.toHaveBeenCalled();
+    expect(mockHash).not.toHaveBeenCalled();
   });
 
   // U-1.3

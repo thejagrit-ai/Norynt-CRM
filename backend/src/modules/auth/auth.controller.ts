@@ -22,7 +22,7 @@ import { Public } from '../../common/decorators/public.decorator';
 import { AuthService, LoginResult } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-import { EmailOnlyDto, ResetPasswordDto, VerifyEmailDto } from './dto/otp.dto';
+import { EmailOnlyDto, ResetPasswordDto } from './dto/otp.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { Patch } from '@nestjs/common';
@@ -46,12 +46,12 @@ export class AuthController {
   }
 
   @Public()
-  @Post('verify-email')
+  @Post('complete-registration')
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
-  @ApiOperation({ summary: 'Confirm signup with the emailed 6-digit code' })
-  verifyEmail(@Body() dto: VerifyEmailDto) {
-    return this.authService.verifyEmail(dto.email, dto.otp);
+  @ApiOperation({ summary: 'Finish signup: emailed 6-digit code + chosen password' })
+  completeRegistration(@Body() dto: ResetPasswordDto) {
+    return this.authService.completeRegistration(dto.email, dto.otp, dto.newPassword);
   }
 
   @Public()

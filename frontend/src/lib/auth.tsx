@@ -59,7 +59,6 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
 
 export interface RegisterInput {
   email: string;
-  password: string;
   firstName: string;
   lastName: string;
 }

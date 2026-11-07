@@ -4,42 +4,25 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
-import { PasswordField } from './PasswordField';
-import { PasswordStrength } from './PasswordStrength';
-import {
-  PASSWORD_RULES,
-  describeAuthError,
-  normalizeEmail,
-  validateEmail,
-} from './authUtils';
+import { describeAuthError, normalizeEmail, validateEmail } from './authUtils';
 import styles from './auth.module.css';
 
-type Field = 'firstName' | 'lastName' | 'email' | 'password' | 'confirm';
+type Field = 'firstName' | 'lastName' | 'email';
 type Errors = Partial<Record<Field, string | null>>;
 
 function validate(f: Record<Field, string>): Errors {
-  const errors: Errors = {};
-  if (!f.firstName.trim()) errors.firstName = 'Enter your first name.';
-  if (!f.lastName.trim()) errors.lastName = 'Enter your last name.';
-  errors.email = validateEmail(f.email);
-  if (!f.password) errors.password = 'Create a password.';
-  else if (!PASSWORD_RULES.every((r) => r.test(f.password)))
-    errors.password = 'Your password doesn’t meet every requirement below.';
-  if (!f.confirm) errors.confirm = 'Re-enter your password.';
-  else if (f.confirm !== f.password) errors.confirm = 'The passwords don’t match.';
-  return errors;
+  return {
+    firstName: f.firstName.trim() ? null : 'Enter your first name.',
+    lastName: f.lastName.trim() ? null : 'Enter your last name.',
+    email: validateEmail(f.email),
+  };
 }
 
+/** Step 1 of signup: no password here. You choose it after proving you own the email. */
 export function RegisterForm() {
   const { register } = useAuth();
   const router = useRouter();
-  const [values, setValues] = useState<Record<Field, string>>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    confirm: '',
-  });
+  const [values, setValues] = useState<Record<Field, string>>({ firstName: '', lastName: '', email: '' });
   const [errors, setErrors] = useState<Errors>({});
   const [touched, setTouched] = useState<Partial<Record<Field, boolean>>>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -52,15 +35,7 @@ export function RegisterForm() {
     setValues(next);
     setFormError(null);
     if (field === 'email') setEmailTaken(false);
-    // Re-check a field only after the person has left it once; keep confirm in sync live.
-    if (touched[field] || (field === 'password' && touched.confirm)) {
-      const all = validate(next);
-      setErrors((e) => ({
-        ...e,
-        [field]: touched[field] ? all[field] : e[field],
-        ...(field === 'password' && touched.confirm ? { confirm: all.confirm } : {}),
-      }));
-    }
+    if (touched[field]) setErrors((e) => ({ ...e, [field]: validate(next)[field] }));
   }
 
   function blur(field: Field) {
@@ -73,27 +48,19 @@ export function RegisterForm() {
     if (busy) return;
     const all = validate(values);
     setErrors(all);
-    setTouched({ firstName: true, lastName: true, email: true, password: true, confirm: true });
+    setTouched({ firstName: true, lastName: true, email: true });
     setFormError(null);
 
-    const firstBad = (['firstName', 'lastName', 'email', 'password', 'confirm'] as Field[]).find(
-      (k) => all[k],
-    );
+    const firstBad = (['firstName', 'lastName', 'email'] as Field[]).find((k) => all[k]);
     if (firstBad) {
-      const id = firstBad === 'confirm' ? 'reg-confirm' : `reg-${firstBad}`;
-      formRef.current?.querySelector<HTMLInputElement>(`#${id}`)?.focus();
+      formRef.current?.querySelector<HTMLInputElement>(`#reg-${firstBad}`)?.focus();
       return;
     }
 
     setBusy(true);
     try {
       const clean = normalizeEmail(values.email);
-      await register({
-        email: clean,
-        password: values.password,
-        firstName: values.firstName.trim(),
-        lastName: values.lastName.trim(),
-      });
+      await register({ email: clean, firstName: values.firstName.trim(), lastName: values.lastName.trim() });
       router.push(`/verify-email?email=${encodeURIComponent(clean)}&from=register`);
     } catch (err) {
       const { message, status } = describeAuthError(err, 'register');
@@ -129,9 +96,7 @@ export function RegisterForm() {
           {f === 'email' && emailTaken && (
             <>
               {' '}
-              <Link href={`/login?email=${encodeURIComponent(normalizeEmail(values.email))}`}>
-                Sign in instead
-              </Link>
+              <Link href={`/login?email=${encodeURIComponent(normalizeEmail(values.email))}`}>Sign in instead</Link>
             </>
           )}
         </span>
@@ -142,7 +107,7 @@ export function RegisterForm() {
     <>
       <div className={styles.heading}>
         <h1>Create your account</h1>
-        <p>Takes about a minute. We’ll email you a code to confirm your address.</p>
+        <p>Enter your name and work email. We’ll send a code to confirm it, then you choose a password.</p>
       </div>
 
       <form ref={formRef} onSubmit={onSubmit} className={styles.form} noValidate aria-busy={busy}>
@@ -180,41 +145,14 @@ export function RegisterForm() {
           {fieldError('email', 'reg-email')}
         </div>
 
-        <PasswordField
-          id="reg-password"
-          label="Password"
-          value={values.password}
-          onChange={(v) => set('password', v)}
-          onBlur={() => blur('password')}
-          autoComplete="new-password"
-          placeholder="Create a password"
-          error={err('password')}
-          describedBy="reg-rules"
-          disabled={busy}
-        >
-          <PasswordStrength value={values.password} id="reg-rules" />
-        </PasswordField>
-
-        <PasswordField
-          id="reg-confirm"
-          label="Confirm password"
-          value={values.confirm}
-          onChange={(v) => set('confirm', v)}
-          onBlur={() => blur('confirm')}
-          autoComplete="new-password"
-          placeholder="Re-enter your password"
-          error={err('confirm')}
-          disabled={busy}
-        />
-
         <button type="submit" className={styles.submit} disabled={busy}>
           {busy ? (
             <>
               <Loader2 size={19} className={styles.spin} aria-hidden="true" />
-              Creating account…
+              Sending code…
             </>
           ) : (
-            'Create account'
+            'Continue'
           )}
         </button>
       </form>

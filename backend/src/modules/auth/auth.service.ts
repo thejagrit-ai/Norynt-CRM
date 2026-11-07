@@ -11,7 +11,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { createHash } from 'crypto';
+import { createHash, randomBytes } from 'crypto';
 import { AuthRepository } from './auth.repository';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -73,6 +73,11 @@ export class AuthService {
     }
   }
 
+  /**
+   * Step 1 of signup. Takes NO password: nobody can set a credential on an address until they
+   * prove they own the mailbox (see completeRegistration). The account starts unverified with an
+   * unusable random password hash, so it cannot be signed into or pre-claimed by a stranger.
+   */
   async register(
     dto: RegisterDto,
   ): Promise<AuthUserView & { emailSent: boolean }> {
@@ -81,9 +86,7 @@ export class AuthService {
       throw new ConflictException('This email address is already registered.');
     }
     if (existing) {
-      // Never let an anonymous request overwrite stored credentials: just re-send a code to the
-      // mailbox owner and answer exactly like a fresh signup. They can set a password with
-      // "Forgot password" if they mistyped it.
+      // Already pending: only re-send a code; never touch stored data.
       const emailSent = await this.sendQuietly(dto.email, 'EMAIL_VERIFY', existing.firstName);
       return {
         id: existing.id,
@@ -96,29 +99,33 @@ export class AuthService {
         emailSent,
       };
     }
-    const passwordHash = await bcrypt.hash(dto.password, this.bcryptCost);
+    const unusable = await bcrypt.hash(randomBytes(32).toString('hex'), this.bcryptCost);
     const user = await this.authRepo.createUser({
       email: dto.email,
-      passwordHash,
+      passwordHash: unusable,
       firstName: dto.firstName,
       lastName: dto.lastName,
       emailVerified: false,
     });
-    const emailSent = await this.sendQuietly(
-      dto.email,
-      'EMAIL_VERIFY',
-      dto.firstName,
-    );
+    const emailSent = await this.sendQuietly(dto.email, 'EMAIL_VERIFY', dto.firstName);
     return { ...this.toUserView(user), emailSent };
   }
 
-  async verifyEmail(email: string, code: string): Promise<{ verified: true }> {
+  /** Step 2: whoever holds the emailed code chooses the password and the email becomes verified. */
+  async completeRegistration(
+    email: string,
+    code: string,
+    password: string,
+  ): Promise<{ verified: true }> {
     const user = await this.authRepo.findByEmail(email);
-    if (!user) {
-      throw new BadRequestException('That code is incorrect or has expired.');
+    if (!user || user.emailVerified) {
+      throw new BadRequestException(
+        'That code is incorrect or has expired. Check it and try again, or request a new one.',
+      );
     }
     await this.otp.consume(email, 'EMAIL_VERIFY', code);
-    await this.authRepo.markEmailVerified(user.id);
+    const hash = await bcrypt.hash(password, this.bcryptCost);
+    await this.authRepo.resetPasswordAndVerify(user.id, hash);
     return { verified: true };
   }
 
