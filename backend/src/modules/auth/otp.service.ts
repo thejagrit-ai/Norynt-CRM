@@ -58,20 +58,31 @@ export class OtpService {
       where: { email, purpose, consumedAt: null },
       orderBy: { createdAt: 'desc' },
     });
-    if (!rec || rec.expiresAt.getTime() < Date.now() || rec.attempts >= MAX_ATTEMPTS) {
-      throw new BadRequestException(INVALID_MSG);
-    }
+    if (!rec) throw new BadRequestException(INVALID_MSG);
+
+    // Atomically spend one attempt first; parallel guesses can't exceed the limit.
+    const spent = await this.prisma.otpCode.updateMany({
+      where: {
+        id: rec.id,
+        consumedAt: null,
+        attempts: { lt: MAX_ATTEMPTS },
+        expiresAt: { gt: new Date() },
+      },
+      data: { attempts: { increment: 1 } },
+    });
+    if (spent.count !== 1) throw new BadRequestException(INVALID_MSG);
 
     const given = Buffer.from(this.hash(email, purpose, code));
     const stored = Buffer.from(rec.codeHash);
-    const ok = given.length === stored.length && timingSafeEqual(given, stored);
-    if (!ok) {
-      await this.prisma.otpCode.update({
-        where: { id: rec.id },
-        data: { attempts: { increment: 1 } },
-      });
+    if (given.length !== stored.length || !timingSafeEqual(given, stored)) {
       throw new BadRequestException(INVALID_MSG);
     }
-    await this.prisma.otpCode.update({ where: { id: rec.id }, data: { consumedAt: new Date() } });
+
+    // Single use: only one concurrent request can win the consume.
+    const used = await this.prisma.otpCode.updateMany({
+      where: { id: rec.id, consumedAt: null },
+      data: { consumedAt: new Date() },
+    });
+    if (used.count !== 1) throw new BadRequestException(INVALID_MSG);
   }
 }

@@ -85,18 +85,6 @@ export class AuthRepository {
     });
   }
 
-  // Re-registering an address that never confirmed its code replaces the pending credentials.
-  updatePendingRegistration(
-    id: string,
-    data: { passwordHash: string; firstName: string; lastName: string },
-  ) {
-    return this.prisma.user.update({
-      where: { id },
-      data,
-      include: { roles: { include: { role: true } } },
-    });
-  }
-
   markEmailVerified(id: string) {
     return this.prisma.user.update({ where: { id }, data: { emailVerified: true } });
   }

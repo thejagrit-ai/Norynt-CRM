@@ -80,20 +80,30 @@ export class AuthService {
     if (existing && existing.emailVerified) {
       throw new ConflictException('This email address is already registered.');
     }
+    if (existing) {
+      // Never let an anonymous request overwrite stored credentials: just re-send a code to the
+      // mailbox owner and answer exactly like a fresh signup. They can set a password with
+      // "Forgot password" if they mistyped it.
+      const emailSent = await this.sendQuietly(dto.email, 'EMAIL_VERIFY', existing.firstName);
+      return {
+        id: existing.id,
+        email: dto.email,
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        roles: [],
+        permissions: [],
+        tenantId: null,
+        emailSent,
+      };
+    }
     const passwordHash = await bcrypt.hash(dto.password, this.bcryptCost);
-    const user = existing
-      ? await this.authRepo.updatePendingRegistration(existing.id, {
-          passwordHash,
-          firstName: dto.firstName,
-          lastName: dto.lastName,
-        })
-      : await this.authRepo.createUser({
-          email: dto.email,
-          passwordHash,
-          firstName: dto.firstName,
-          lastName: dto.lastName,
-          emailVerified: false,
-        });
+    const user = await this.authRepo.createUser({
+      email: dto.email,
+      passwordHash,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      emailVerified: false,
+    });
     const emailSent = await this.sendQuietly(
       dto.email,
       'EMAIL_VERIFY',
